@@ -1,0 +1,38 @@
+@use 'variables' as v;
+@use 'tokens';
+@use 'qti-overrides';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+// Form controls don't inherit font by default in some UAs.
+button, input, select, textarea {
+  font: inherit;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--qtr-font-sans);
+  color: v.$g900;
+  background: v.$cream-bg;
+  color-scheme: light;
+}
+
+img, svg, video {
+  max-width: 100%;
+}
+
+// The item engine's hotspot/select-point/graphic-gap-match SVG overlays size
+// their viewBox from the image's rendered (not intrinsic) dimensions, but
+// coords are authored against the original size — shrinking these images via
+// max-width would clip choices off-canvas. Render at native size instead.
+.qti-hotspot-interaction img,
+.qti-select-point-interaction img,
+.qti-graphic-gap-match-interaction img {
+  max-width: none;
+}

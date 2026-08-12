@@ -1,0 +1,17 @@
+// Host-themeable surface — override these custom properties on the
+// element/document before mounting.
+@use 'variables' as v;
+
+:root {
+  // $ginger is a separate decorative-only accent — don't use it here.
+  --qtr-primary: #a85236;
+  --qtr-primary-hover: #8f4329;
+  --qtr-primary-subtle: rgba(168, 82, 54, 0.12); // alpha-tinted, not a flat hex
+  --qtr-font-sans: #{v.$ff-display};
+  --qtr-r-xxs: 0.25rem;
+  --qtr-r-xs: 0.625rem;
+  --qtr-r-sm: 0.5rem;
+  --qtr-r-md: 0.875rem;
+  --qtr-r-lg: 1.25rem;
+  --qtr-r-pill: 9999px;
+}

@@ -1,0 +1,67 @@
+// Container-query breakpoints, not viewport media queries — this runner can
+// be embedded in a narrow host container while the viewport stays
+// desktop-width. Queried against .app-shell's container-name: qti-runner.
+@use 'variables' as v;
+
+@mixin mobile {
+  @container qti-runner (max-width: #{v.$bp-mobile}) {
+    @content;
+  }
+}
+
+@mixin mobile-xs {
+  @container qti-runner (max-width: #{v.$bp-mobile-xs}) {
+    @content;
+  }
+}
+
+@mixin mobile-2xs {
+  @container qti-runner (max-width: #{v.$bp-mobile-2xs}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @container qti-runner (max-width: #{v.$bp-tablet}) {
+    @content;
+  }
+}
+
+// Real @media height check — block-size containment isn't safe on the shell
+// (would risk height:100% chains).
+@mixin short {
+  @media (max-height: #{v.$bp-short-height}) {
+    @content;
+  }
+}
+
+@mixin focus-ring($color: v.$ginger) {
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #{v.$white}, 0 0 0 4px $color;
+  }
+}
+
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: v.$space-2 v.$space-4;
+  border-radius: var(--qtr-r-sm);
+  font: inherit;
+  font-weight: v.$fw-medium;
+  border: none;
+  cursor: pointer;
+  transition: background-color v.$dur-fast v.$ease-out, color v.$dur-fast v.$ease-out;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

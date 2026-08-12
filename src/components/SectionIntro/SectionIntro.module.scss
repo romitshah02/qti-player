@@ -1,0 +1,114 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+.sectionIntro {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: v.$space-6;
+  overflow-y: auto;
+}
+
+.card {
+  width: 100%;
+  max-width: 560px;
+  margin: auto;
+  background: v.$ivory;
+  border-radius: var(--qtr-r-md);
+  box-shadow: v.$shadow-sm;
+  overflow: hidden;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: v.$space-4;
+  padding: v.$space-8 v.$space-8 v.$space-6;
+  background: var(--qtr-primary-subtle);
+
+  @include m.mobile {
+    padding: v.$space-6 v.$space-5 v.$space-5;
+  }
+}
+
+.badge {
+  @include m.flex-center;
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--qtr-r-pill);
+  background: var(--qtr-primary);
+  color: v.$white;
+  font-weight: v.$fw-bold;
+  font-size: v.$text-lg;
+}
+
+.bannerText {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 v.$space-1;
+  font-size: v.$text-xs;
+  font-weight: v.$fw-bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--qtr-primary-hover);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  margin: 0;
+  font-size: v.$text-2xl;
+  font-weight: v.$fw-semibold;
+  color: v.$g900;
+
+  @include m.mobile {
+    font-size: v.$text-xl;
+  }
+}
+
+.body {
+  padding: v.$space-6 v.$space-8 v.$space-8;
+
+  @include m.mobile {
+    padding: v.$space-5;
+  }
+}
+
+.instructionsHeading {
+  margin: 0 0 v.$space-2;
+  font-size: v.$text-sm;
+  font-weight: v.$fw-semibold;
+  color: v.$g900;
+}
+
+.instructionsBody {
+  margin: 0 0 v.$space-6;
+  font-size: v.$text-sm;
+  color: v.$g700;
+  line-height: v.$lh-relaxed;
+}
+
+.startBtn {
+  @include m.focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: v.$space-3 v.$space-5;
+  border: none;
+  border-radius: var(--qtr-r-sm);
+  background: var(--qtr-primary);
+  color: v.$white;
+  font-weight: v.$fw-semibold;
+  font-size: v.$text-sm;
+  cursor: pointer;
+  transition: background v.$dur-fast v.$ease-out;
+
+  &:hover {
+    background: var(--qtr-primary-hover);
+  }
+}

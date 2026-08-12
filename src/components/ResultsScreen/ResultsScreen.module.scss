@@ -1,0 +1,173 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+.results {
+  flex: 1;
+  @include m.flex-center;
+  min-height: 100%;
+  padding: v.$space-10 v.$space-6;
+  background: v.$cream-bg;
+
+  @include m.short {
+    padding: v.$space-3;
+  }
+}
+
+.card {
+  width: 100%;
+  max-width: 560px;
+  padding: v.$space-10 v.$space-8;
+  background: v.$ivory;
+  border-radius: var(--qtr-r-lg);
+  box-shadow: v.$shadow-card;
+  text-align: center;
+
+  @include m.mobile {
+    padding: v.$space-6 v.$space-5;
+  }
+
+  @include m.short {
+    padding: v.$space-4;
+  }
+}
+
+.title {
+  margin: 0 0 v.$space-6;
+  font-size: v.$text-2xl;
+  font-weight: v.$fw-bold;
+  color: v.$g900;
+
+  @include m.short {
+    margin-bottom: v.$space-3;
+    font-size: v.$text-xl;
+  }
+}
+
+// 2 buckets (answered/unanswered) — this app only tracks answered vs not,
+// not grading (no correct/incorrect/partial/skipped breakdown).
+.scoreboard {
+  max-width: 580px;
+  margin: 0 auto v.$space-8;
+  padding: v.$space-8 v.$space-6;
+  background: v.$white;
+  border: 1px solid v.$gray-200;
+  border-radius: var(--qtr-r-lg);
+  box-shadow: v.$shadow-card;
+
+  @include m.short {
+    padding: v.$space-4 v.$space-3;
+  }
+}
+
+.scoreboardHeading {
+  margin: 0 0 v.$space-6;
+  font-size: v.$text-xl;
+  font-weight: v.$fw-bold;
+  color: v.$dark;
+
+  @include m.short {
+    margin-bottom: v.$space-3;
+    font-size: v.$text-lg;
+  }
+}
+
+.stats {
+  display: flex;
+  gap: 1px;
+  margin: 0;
+  background: v.$g100;
+  border-radius: var(--qtr-r-md);
+  overflow: hidden;
+
+  @include m.mobile {
+    flex-wrap: wrap;
+  }
+}
+
+.stat {
+  flex: 1 1 0;
+  min-width: 70px;
+  padding: v.$space-3 v.$space-2;
+  background: v.$white;
+
+  @include m.short {
+    padding: v.$space-2;
+  }
+}
+
+.statValue {
+  margin: 0;
+  font-size: v.$text-lg;
+  font-weight: v.$fw-bold;
+  line-height: 1;
+  color: v.$g500;
+}
+
+.statLabel {
+  margin: 0 0 v.$space-1;
+  font-size: v.$text-xs;
+  font-weight: v.$fw-medium;
+  letter-spacing: 0.04em;
+  color: v.$gray-400;
+}
+
+.stat.answered .statValue {
+  color: v.$success;
+}
+
+.stat.unanswered .statValue {
+  color: v.$gray-400;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(2.5rem, 1fr));
+  gap: v.$space-2;
+  list-style: none;
+  margin: 0 0 v.$space-6;
+  padding: 0;
+}
+
+.chipBtn {
+  @include m.flex-center;
+  @include m.focus-ring;
+  width: 100%;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: var(--qtr-r-sm);
+  font-weight: v.$fw-medium;
+  cursor: pointer;
+}
+
+.chip.answered .chipBtn {
+  background: v.$success-bg;
+  color: v.$success;
+}
+
+.chip.unanswered .chipBtn {
+  background: v.$warning-bg;
+  color: v.$warning;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: v.$space-3;
+}
+
+.retakeBtn {
+  @include m.button-base;
+  @include m.focus-ring;
+  background: transparent;
+  color: v.$g700;
+  border: 1.5px solid v.$gray-300;
+
+  @include m.short {
+    padding: v.$space-2 v.$space-4;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: v.$gray-400;
+    background: v.$cream-bg;
+  }
+}

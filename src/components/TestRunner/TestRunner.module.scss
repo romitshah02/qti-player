@@ -1,0 +1,163 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+.appShell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  container-type: inline-size;
+  container-name: qti-runner;
+  position: relative;
+  isolation: isolate;
+  background: v.$cream-bg;
+}
+
+.appBody {
+  flex: 1;
+  display: flex;
+  // flexbox min-height default-auto bug: without this, .main could grow
+  // past .appBody instead of scrolling internally.
+  min-height: 0;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+// Persistent desktop sidebar rail — Sidebar itself no longer sizes/hides
+// itself (see Sidebar.module.scss); this wrapper owns that here instead.
+.sidebarRail {
+  width: v.$sidebar-w;
+  height: 100%;
+  flex-shrink: 0;
+
+  @include m.mobile {
+    display: none;
+  }
+}
+
+.qtiContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1088px;
+  margin-inline: auto;
+  padding: v.$space-6 v.$space-6 v.$space-8;
+  overflow-y: auto;
+
+  > * {
+    width: 100%;
+    flex: 1;
+  }
+}
+
+.qtiCard {
+  width: 100%;
+  margin: 0 auto;
+  padding: v.$space-8 v.$space-10;
+  background: v.$ivory;
+  border-radius: var(--qtr-r-md);
+  box-shadow: v.$shadow-sm;
+  transform: translate(0);
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: v.$space-8;
+
+  @include m.mobile {
+    padding: v.$space-5;
+    flex-direction: column;
+  }
+
+  @include m.short {
+    padding: v.$space-4;
+  }
+}
+
+.qtiStimulusPanel,
+.qtiItemPanel {
+  flex: 1;
+  min-width: 0;
+}
+
+.qtiStimulusPanel {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+}
+
+.qtiMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: v.$space-2;
+  margin-bottom: v.$space-5;
+
+  @include m.short {
+    margin-bottom: v.$space-3;
+  }
+}
+
+.qtiCategory {
+  display: inline-flex;
+  align-items: center;
+  padding: v.$space-1 v.$space-3;
+  border-radius: var(--qtr-r-pill);
+  font-size: v.$text-xs;
+  font-weight: v.$fw-semibold;
+  text-transform: capitalize;
+  background: var(--qtr-primary-subtle);
+  color: var(--qtr-primary-hover);
+}
+
+.qtiUnsupported {
+  padding: v.$space-5;
+  border-radius: var(--qtr-r-sm);
+  background: v.$warning-bg;
+  color: v.$warning;
+  font-size: v.$text-sm;
+
+  p {
+    margin: 0;
+  }
+}
+
+.qtiAdaptiveNext {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: v.$space-6;
+}
+
+.qtiAdaptiveNextBtn {
+  @include m.button-base;
+  @include m.focus-ring;
+
+  padding: v.$space-3 v.$space-6;
+  border-radius: var(--qtr-r-xs);
+  font-size: v.$text-sm;
+  font-weight: v.$fw-semibold;
+  background: var(--qtr-primary);
+  color: v.$white;
+  border: 1.5px solid var(--qtr-primary);
+  box-shadow: v.$shadow-sm;
+  transition: box-shadow v.$dur-fast v.$ease-out, transform v.$dur-fast v.$ease-out;
+
+  &:hover:not(:disabled) {
+    background: var(--qtr-primary-hover);
+    box-shadow: v.$shadow-md;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    box-shadow: none;
+    opacity: 0.6;
+  }
+}

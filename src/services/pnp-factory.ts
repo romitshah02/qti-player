@@ -1,0 +1,286 @@
+export interface Pnp {
+  textAppearance: { colorStyle: string };
+  glossaryOnScreen: boolean;
+  keywordTranslationLanguage: string; // ISO 639-1 code when set
+  extSbacGlossaryIllustration: boolean;
+  layoutSingleColumn: boolean; // unsupported
+}
+
+export class PnpFactory {
+  pnp: Pnp;
+
+  // Foreground/background color-theme names, keyword-translation language
+  // codes (ktlang-*), and glossary/illustration toggles.
+  constants = {
+    COLOR_DEFAULT: 'qti3-player-color-default',
+    COLOR_DEFAULT_REVERSE: 'qti3-player-color-defaultreverse',
+    COLOR_BLACK_WHITE: 'qti3-player-color-blackwhite',
+    COLOR_WHITE_BLACK: 'qti3-player-color-whiteblack',
+    COLOR_BLACK_ROSE: 'qti3-player-color-blackrose',
+    COLOR_ROSE_BLACK: 'qti3-player-color-roseblack',
+    COLOR_YELLOW_BLUE: 'qti3-player-color-yellowblue',
+    COLOR_BLUE_YELLOW: 'qti3-player-color-blueyellow',
+    COLOR_MGRAY_DGRAY: 'qti3-player-color-mgraydgray',
+    COLOR_DGRAY_MGRAY: 'qti3-player-color-dgraymgray',
+    COLOR_BLACK_CYAN: 'qti3-player-color-blackcyan',
+    COLOR_CYAN_BLACK: 'qti3-player-color-cyanblack',
+    COLOR_BLACK_CREAM: 'qti3-player-color-blackcream',
+    COLOR_CREAM_BLACK: 'qti3-player-color-creamblack',
+    GLOSSARY_ON: 'glossary-on',
+    GLOSSARY_OFF: 'glossary-off',
+
+    KEYWORD_TRANS_OFF: 'ktlang-off',
+    KEYWORD_TRANS_AR: 'ktlang-ar',
+    KEYWORD_TRANS_CMN: 'ktlang-cmn',
+    KEYWORD_TRANS_DE: 'ktlang-de',
+    KEYWORD_TRANS_EN: 'ktlang-en',
+    KEYWORD_TRANS_ES: 'ktlang-es',
+    KEYWORD_TRANS_FR: 'ktlang-fr',
+    KEYWORD_TRANS_HMN: 'ktlang-hmn',
+    KEYWORD_TRANS_IT: 'ktlang-it',
+    KEYWORD_TRANS_JA: 'ktlang-ja',
+    KEYWORD_TRANS_KO: 'ktlang-ko',
+    KEYWORD_TRANS_MY: 'ktlang-my',
+    KEYWORD_TRANS_NL: 'ktlang-nl',
+    KEYWORD_TRANS_PA: 'ktlang-pa',
+    KEYWORD_TRANS_RU: 'ktlang-ru',
+    KEYWORD_TRANS_SO: 'ktlang-so',
+    KEYWORD_TRANS_TL: 'ktlang-tl',
+    KEYWORD_TRANS_UK: 'ktlang-uk',
+    KEYWORD_TRANS_VI: 'ktlang-vi',
+    KEYWORD_TRANS_YUE: 'ktlang-yue',
+    KEYWORD_TRANS_ZH: 'ktlang-zh',
+
+    EXT_SBAC_GLOSSARY_ILLUSTRATION_ON: 'sbacGlossaryIllustration-on',
+    EXT_SBAC_GLOSSARY_ILLUSTRATION_OFF: 'sbacGlossaryIllustration-off',
+  };
+
+  constructor() {
+    this.pnp = this.defaultPnp();
+  }
+
+  defaultPnp(): Pnp {
+    return {
+      textAppearance: { colorStyle: this.constants.COLOR_DEFAULT },
+      glossaryOnScreen: true,
+      keywordTranslationLanguage: '',
+      extSbacGlossaryIllustration: false,
+      layoutSingleColumn: false,
+    };
+  }
+
+  setPnp(pnp: Partial<Pnp> | null | undefined): void {
+    if (typeof pnp === 'undefined') return;
+
+    if (pnp === null) {
+      this.pnp = this.defaultPnp();
+      return;
+    }
+
+    if ('textAppearance' in pnp && pnp.textAppearance !== null) {
+      if (pnp.textAppearance && 'colorStyle' in pnp.textAppearance) {
+        this.setColorStyle(pnp.textAppearance.colorStyle);
+      }
+    }
+
+    if ('glossaryOnScreen' in pnp && pnp.glossaryOnScreen !== null) {
+      this.setGlossaryOnScreen(pnp.glossaryOnScreen!);
+    }
+
+    if ('keywordTranslationLanguage' in pnp) {
+      this.setKeywordTranslationLanguage(pnp.keywordTranslationLanguage!);
+    }
+
+    if ('extSbacGlossaryIllustration' in pnp && pnp.extSbacGlossaryIllustration !== null) {
+      this.setExtSbacGlossaryIllustration(pnp.extSbacGlossaryIllustration!);
+    }
+
+    if ('layoutSingleColumn' in pnp && pnp.layoutSingleColumn !== null) {
+      this.setLayoutSingleColumn(pnp.layoutSingleColumn!);
+    }
+  }
+
+  getPnp(): Pnp {
+    return this.pnp;
+  }
+
+  getAfaPnp(): { 'access-for-all-pnp': Record<string, unknown> } {
+    const pnp: Record<string, unknown> = {
+      'ext:sbac-illustrated-glossary': this.getExtSbacGlossaryIllustration() ? 'on' : 'off',
+      'keyword-translation': this.getKeywordTranslationLanguage(),
+      'text-appearance': { 'color-theme': this.convertColorStyleToTheme() },
+    };
+    const prohibitSet = this.getProhibitSet();
+    if (prohibitSet !== null) pnp['prohibit-set'] = prohibitSet;
+
+    return { 'access-for-all-pnp': pnp };
+  }
+
+  getColorStyle(): string {
+    return this.pnp.textAppearance.colorStyle;
+  }
+
+  setColorStyle(colorStyle: string): void {
+    this.pnp.textAppearance.colorStyle = colorStyle;
+  }
+
+  getGlossaryOnScreen(): boolean {
+    return this.pnp.glossaryOnScreen;
+  }
+
+  setGlossaryOnScreen(glossaryOnScreen: boolean): void {
+    this.pnp.glossaryOnScreen = glossaryOnScreen;
+  }
+
+  getKeywordTranslationLanguage(): string {
+    return this.pnp.keywordTranslationLanguage;
+  }
+
+  setKeywordTranslationLanguage(keywordTranslationLanguage: string): void {
+    this.pnp.keywordTranslationLanguage = keywordTranslationLanguage;
+  }
+
+  getExtSbacGlossaryIllustration(): boolean {
+    return this.pnp.extSbacGlossaryIllustration;
+  }
+
+  setExtSbacGlossaryIllustration(extSbacGlossaryIllustration: boolean): void {
+    this.pnp.extSbacGlossaryIllustration = extSbacGlossaryIllustration;
+  }
+
+  getLayoutSingleColumn(): boolean {
+    return this.pnp.layoutSingleColumn;
+  }
+
+  setLayoutSingleColumn(layoutSingleColumn: boolean): void {
+    this.pnp.layoutSingleColumn = layoutSingleColumn;
+  }
+
+  /** Convert this player's PNP colorStyle to a standard QTI color theme. */
+  convertColorStyleToTheme(): string {
+    const parts = this.getColorStyle().split('-');
+    if (parts.length !== 4) return 'default';
+    switch (parts[3]) {
+      case 'default': return 'default';
+      case 'defaultreverse': return 'default-reverse';
+      case 'blackwhite': return 'high-contrast';
+      case 'whiteblack': return 'high-contrast-reverse';
+      case 'blackrose': return 'black-rose';
+      case 'roseblack': return 'rose-black';
+      case 'yellowblue': return 'yellow-blue';
+      case 'blueyellow': return 'blue-yellow';
+      case 'mgraydgray': return 'medgray-darkgray';
+      case 'dgraymgray': return 'darkgray-medgray';
+      case 'blackcyan': return 'black-cyan';
+      case 'cyanblack': return 'cyan-black';
+      case 'blackcream': return 'black-cream';
+      case 'creamblack': return 'cream-black';
+      default: return 'default';
+    }
+  }
+
+  getProhibitSet(): { 'glossary-on-screen': string } | null {
+    if (this.getGlossaryOnScreen()) return null;
+    return { 'glossary-on-screen': 'active' };
+  }
+
+  evaluatePnpEvent(event: string): boolean {
+    let flag = false;
+
+    switch (event) {
+      case this.constants.GLOSSARY_ON:
+        if (this.getGlossaryOnScreen() === false) {
+          this.setGlossaryOnScreen(true);
+          flag = true;
+        }
+        break;
+      case this.constants.GLOSSARY_OFF:
+        if (this.getGlossaryOnScreen() === true) {
+          this.setGlossaryOnScreen(false);
+          flag = true;
+        }
+        break;
+      case this.constants.KEYWORD_TRANS_OFF:
+        if (this.getKeywordTranslationLanguage() !== '') {
+          this.setKeywordTranslationLanguage('');
+          flag = true;
+        }
+        break;
+      case this.constants.KEYWORD_TRANS_AR:
+        if (this.getKeywordTranslationLanguage() !== 'ar') { this.setKeywordTranslationLanguage('ar'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_CMN:
+        if (this.getKeywordTranslationLanguage() !== 'cmn') { this.setKeywordTranslationLanguage('cmn'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_DE:
+        if (this.getKeywordTranslationLanguage() !== 'de') { this.setKeywordTranslationLanguage('de'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_EN:
+        if (this.getKeywordTranslationLanguage() !== 'en') { this.setKeywordTranslationLanguage('en'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_ES:
+        if (this.getKeywordTranslationLanguage() !== 'es') { this.setKeywordTranslationLanguage('es'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_FR:
+        if (this.getKeywordTranslationLanguage() !== 'fr') { this.setKeywordTranslationLanguage('fr'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_HMN:
+        if (this.getKeywordTranslationLanguage() !== 'hmn') { this.setKeywordTranslationLanguage('hmn'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_IT:
+        if (this.getKeywordTranslationLanguage() !== 'it') { this.setKeywordTranslationLanguage('it'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_JA:
+        if (this.getKeywordTranslationLanguage() !== 'ja') { this.setKeywordTranslationLanguage('ja'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_KO:
+        if (this.getKeywordTranslationLanguage() !== 'ko') { this.setKeywordTranslationLanguage('ko'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_MY:
+        if (this.getKeywordTranslationLanguage() !== 'my') { this.setKeywordTranslationLanguage('my'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_NL:
+        if (this.getKeywordTranslationLanguage() !== 'nl') { this.setKeywordTranslationLanguage('nl'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_PA:
+        if (this.getKeywordTranslationLanguage() !== 'pa') { this.setKeywordTranslationLanguage('pa'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_RU:
+        if (this.getKeywordTranslationLanguage() !== 'ru') { this.setKeywordTranslationLanguage('ru'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_SO:
+        if (this.getKeywordTranslationLanguage() !== 'so') { this.setKeywordTranslationLanguage('so'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_TL:
+        if (this.getKeywordTranslationLanguage() !== 'tl') { this.setKeywordTranslationLanguage('tl'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_UK:
+        if (this.getKeywordTranslationLanguage() !== 'uk') { this.setKeywordTranslationLanguage('uk'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_VI:
+        if (this.getKeywordTranslationLanguage() !== 'vi') { this.setKeywordTranslationLanguage('vi'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_YUE:
+        if (this.getKeywordTranslationLanguage() !== 'yue') { this.setKeywordTranslationLanguage('yue'); flag = true; }
+        break;
+      case this.constants.KEYWORD_TRANS_ZH:
+        if (this.getKeywordTranslationLanguage() !== 'zh') { this.setKeywordTranslationLanguage('zh'); flag = true; }
+        break;
+      case this.constants.EXT_SBAC_GLOSSARY_ILLUSTRATION_ON:
+        if (this.getExtSbacGlossaryIllustration() === false) {
+          this.setExtSbacGlossaryIllustration(true);
+          flag = true;
+        }
+        break;
+      case this.constants.EXT_SBAC_GLOSSARY_ILLUSTRATION_OFF:
+        if (this.getExtSbacGlossaryIllustration() === true) {
+          this.setExtSbacGlossaryIllustration(false);
+          flag = true;
+        }
+        break;
+      default:
+    }
+
+    return flag;
+  }
+}

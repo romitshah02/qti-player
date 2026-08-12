@@ -1,0 +1,75 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+// position: absolute (not fixed) anchored to the shell root — so the
+// drawer stays inside the runner when it's embedded smaller than the
+// full browser window (iframe/shadow-DOM host).
+.drawer {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 28, 28, 0.4);
+}
+
+.panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 80%;
+  background: v.$ivory;
+  border-radius: var(--qtr-r-lg) var(--qtr-r-lg) 0 0;
+  box-shadow: v.$shadow-lg;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: sheet-up v.$dur-base v.$ease-out;
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.handle {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--qtr-r-pill);
+  background: v.$g300;
+  margin: v.$space-2 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 v.$space-4 v.$space-2;
+}
+
+.title {
+  font-weight: v.$fw-semibold;
+}
+
+.close {
+  @include m.flex-center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--qtr-r-sm);
+  cursor: pointer;
+  color: v.$g700;
+}
+
+// Sizes the Sidebar it wraps for the drawer's full-width, scrollable body —
+// see Sidebar.module.scss's comment on why this lives here, not there.
+.sidebarSlot {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}

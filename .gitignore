@@ -1,0 +1,6 @@
+node_modules
+dist
+dist-wc
+web-component/assets
+*.tsbuildinfo
+.DS_Store

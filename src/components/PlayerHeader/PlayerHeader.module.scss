@@ -1,0 +1,278 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+.header {
+  @include m.flex-center;
+  justify-content: space-between;
+  gap: v.$space-4;
+  height: v.$header-h;
+  padding: 0 v.$space-6;
+  background: v.$white;
+  border-bottom: 1px solid v.$gray-200;
+  position: sticky;
+  top: 0;
+  z-index: 25;
+}
+
+.left,
+.right {
+  @include m.flex-center;
+  gap: v.$space-3;
+  min-width: 0;
+}
+
+.menuBtn {
+  @include m.flex-center;
+  @include m.focus-ring;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--qtr-r-sm);
+  color: v.$g700;
+  cursor: pointer;
+
+  &:hover {
+    background: v.$g100;
+  }
+
+  // Only needed when the persistent Sidebar is hidden (< 768px).
+  display: none;
+  @include m.mobile {
+    display: inline-flex;
+  }
+}
+
+.brand {
+  @include m.flex-center;
+  gap: v.$space-2;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  min-width: 0;
+}
+
+.brandBadge {
+  @include m.flex-center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--qtr-r-pill);
+  background: var(--qtr-primary);
+  color: v.$white;
+  font-weight: v.$fw-semibold;
+}
+
+.brandName {
+  font-weight: v.$fw-semibold;
+  color: v.$g900;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @include m.tablet {
+    display: none;
+  }
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: v.$space-2;
+
+  @include m.tablet {
+    display: none;
+  }
+}
+
+.step {
+  display: flex;
+  align-items: center;
+
+  &:not(:last-child)::after {
+    content: '';
+    width: v.$space-4;
+    height: 1px;
+    background: v.$g300;
+    margin: 0 v.$space-1;
+  }
+}
+
+.stepDot {
+  @include m.flex-center;
+  @include m.focus-ring;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--qtr-r-pill);
+  border: none;
+  font-size: v.$text-xs;
+  font-weight: v.$fw-semibold;
+  cursor: pointer;
+  color: v.$g700;
+  background: v.$g100;
+}
+
+.active .stepDot {
+  background: var(--qtr-primary);
+  color: v.$white;
+}
+
+.completed .stepDot {
+  background: var(--qtr-primary-subtle);
+  color: var(--qtr-primary);
+}
+
+.timer {
+  font-variant-numeric: tabular-nums;
+  font-weight: v.$fw-medium;
+  padding: v.$space-1 v.$space-2;
+  border-radius: var(--qtr-r-pill);
+  background: v.$g100;
+}
+
+.timerLow {
+  background: v.$danger-bg;
+  color: v.$danger;
+}
+
+.helpWrap {
+  position: relative;
+  display: flex;
+
+  @include m.mobile {
+    display: none;
+  }
+}
+
+.help {
+  @include m.flex-center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--qtr-r-pill);
+  border: 1.5px solid v.$gray-300;
+  background: transparent;
+  color: v.$gray-500;
+  font-size: v.$text-sm;
+  font-weight: v.$fw-bold;
+  cursor: pointer;
+
+  &:hover,
+  &[aria-expanded='true'] {
+    border-color: var(--qtr-primary);
+    color: var(--qtr-primary);
+  }
+}
+
+.legendBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+}
+
+.legend {
+  position: absolute;
+  top: calc(100% + #{v.$space-2});
+  right: 0;
+  z-index: 21;
+  min-width: 13.5rem;
+  padding: v.$space-4;
+  background: v.$white;
+  border: 1px solid v.$gray-200;
+  border-radius: var(--qtr-r-md);
+  box-shadow: v.$shadow-lg;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+}
+
+.legendTitle {
+  margin: 0;
+  font-size: v.$text-xs;
+  font-weight: v.$fw-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: v.$g500;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  font-size: v.$text-sm;
+  color: v.$g700;
+}
+
+.legendDot {
+  @include m.flex-center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--qtr-r-pill);
+  background: v.$g100;
+  color: v.$gray-400;
+  font-size: v.$text-xs;
+  font-weight: v.$fw-bold;
+
+  &.active {
+    background: var(--qtr-primary);
+    color: v.$white;
+  }
+
+  &.completed {
+    background: var(--qtr-primary-subtle);
+    color: var(--qtr-primary);
+  }
+}
+
+.legendMark {
+  @include m.flex-center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: v.$text-sm;
+  font-weight: v.$fw-bold;
+
+  &.answered {
+    color: var(--qtr-primary);
+  }
+
+  &.unanswered {
+    color: v.$gray-400;
+  }
+}
+
+.counter {
+  color: v.$g700;
+  font-size: v.$text-sm;
+
+  @include m.mobile-xs {
+    display: none;
+  }
+}
+
+.btn {
+  @include m.button-base;
+}
+
+.btnGhost {
+  background: transparent;
+  color: v.$g700;
+
+  &:hover:not(:disabled) {
+    background: v.$g100;
+  }
+}
+
+.btnPrimary {
+  background: var(--qtr-primary);
+  color: v.$white;
+
+  &:hover {
+    background: var(--qtr-primary-hover);
+  }
+}

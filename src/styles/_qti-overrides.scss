@@ -1,0 +1,102 @@
+// Global selectors targeting the item engine's own rendered DOM (not ours,
+// so no CSS Modules scoping here) — .qti-card/.qti-item-panel are plain,
+// un-hashed hook classes added alongside TestRunner's CSS-module classes
+// specifically so this file can address them (see TestRunner.tsx).
+@use 'variables' as v;
+
+qti-assessment-item-player {
+  color: #4a4a4a !important;
+  background-color: transparent !important;
+  color-scheme: light !important;
+  --qti3-match-accent: var(--qtr-primary);
+  --qti3-match-target-bg: #{v.$cream-bg};
+  --qti3-match-target-border: #{v.$gray-300};
+}
+
+// qti3-stimulus-player is still Amp-up.io based (see the migration plan's
+// "Vue island" decision) — its default theme is Bootstrap blue, hardcoded as
+// custom properties on .qti3-player-container-fluid — redefine to match
+// ours. Item rendering no longer goes through this component, only stimuli
+// still do.
+.qti-card .qti3-player-container-fluid {
+  --background: #{v.$ivory};
+  --foreground: #{v.$g900};
+  --primary: var(--qtr-primary);
+  --choice-control-checked-bc: var(--qtr-primary);
+  --choice-control-checked-bg: var(--qtr-primary);
+  --choice-focus-border: var(--qtr-primary);
+  --choice-control-focus-border: var(--qtr-primary);
+  --choice-control-hover-bc: var(--qtr-primary);
+}
+
+.qti-item-panel .qti3-choice-option {
+  padding: v.$space-3;
+  min-height: 2.75rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--qtr-r-xs);
+  background: v.$white;
+  color: #4a4a4a;
+  accent-color: var(--qtr-primary);
+  font-size: v.$text-sm;
+  transition: border-color v.$dur-fast v.$ease-out, background v.$dur-fast v.$ease-out;
+}
+
+.qti-item-panel .qti3-choice-option:hover {
+  border-color: var(--qtr-primary);
+  background: v.$cream-bg;
+}
+
+.qti-item-panel .qti3-choice-option[data-selected='true'] {
+  border-color: var(--qtr-primary);
+  background: var(--qtr-primary-subtle);
+}
+
+.qti-item-panel .qti3-choice-option:has(input:focus-visible) {
+  box-shadow: 0 0 0 2px v.$white, 0 0 0 4px var(--qtr-primary);
+}
+
+.qti-item-panel .qti3-hottext-token {
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--qtr-r-xs);
+  background: v.$white;
+  color: #4a4a4a;
+  text-decoration: none;
+  transition: border-color v.$dur-fast v.$ease-out, background v.$dur-fast v.$ease-out;
+}
+
+.qti-item-panel .qti3-hottext-token:hover {
+  border-color: var(--qtr-primary);
+  background: v.$cream-bg;
+}
+
+.qti-item-panel .qti3-hottext-token[data-selected='true'] {
+  border-color: var(--qtr-primary);
+  background: var(--qtr-primary-subtle);
+  color: #4a4a4a;
+  text-decoration: none;
+}
+
+.qti-item-panel .qti3-hottext-token:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px v.$white, 0 0 0 4px var(--qtr-primary);
+}
+
+.qti-item-panel .qti3-graphic-surface {
+  max-inline-size: min(480px, 100%) !important;
+}
+
+.qti-item-panel .qti3-text-input,
+.qti-item-panel .qti3-textarea {
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--qtr-r-xs);
+  background: v.$white;
+  color: #4a4a4a;
+  transition: border-color v.$dur-fast v.$ease-out;
+}
+
+.qti-item-panel .qti3-text-input:focus-visible,
+.qti-item-panel .qti3-textarea:focus-visible {
+  outline: none;
+  border-color: var(--qtr-primary);
+  box-shadow: 0 0 0 2px v.$white, 0 0 0 4px var(--qtr-primary);
+}

@@ -1,0 +1,112 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+.modal {
+  position: absolute;
+  inset: 0;
+  z-index: 1200;
+  @include m.flex-center;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 28, 28, 0.45);
+}
+
+.panel {
+  position: relative;
+  width: min(420px, calc(100% - #{v.$space-8}));
+  background: v.$ivory;
+  border-radius: var(--qtr-r-lg);
+  box-shadow: v.$shadow-lg;
+  padding: v.$space-6;
+  animation: modal-in v.$dur-base v.$ease-out;
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: v.$space-2;
+}
+
+.title {
+  font-size: v.$text-lg;
+  font-weight: v.$fw-semibold;
+}
+
+.close {
+  @include m.flex-center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  background: transparent;
+  color: v.$g700;
+  cursor: pointer;
+}
+
+.body {
+  color: v.$g700;
+  font-size: v.$text-sm;
+  margin: 0 0 v.$space-4;
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: v.$space-3;
+  margin-bottom: v.$space-4;
+}
+
+.count {
+  border-radius: var(--qtr-r-md);
+  padding: v.$space-3;
+  text-align: center;
+}
+
+.answered {
+  background: v.$success-bg;
+  color: v.$success;
+}
+
+.unanswered {
+  background: v.$warning-bg;
+  color: v.$warning;
+}
+
+.countValue {
+  display: block;
+  font-size: v.$text-xl;
+  font-weight: v.$fw-bold;
+}
+
+.countLabel {
+  font-size: v.$text-xs;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: v.$space-2;
+}
+
+.btn {
+  @include m.button-base;
+  background: v.$g100;
+  color: v.$g900;
+}
+
+.btnPrimary {
+  background: var(--qtr-primary);
+  color: v.$white;
+
+  &:hover {
+    background: var(--qtr-primary-hover);
+  }
+}

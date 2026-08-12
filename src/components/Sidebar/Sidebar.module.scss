@@ -1,0 +1,123 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+// Width/mobile-visibility differ between callers (a fixed-width persistent
+// desktop rail vs. a full-width mobile drawer body) — CSS Modules scope each
+// component's classes independently (no Vue-style ::v-deep escape hatch to
+// override from outside), so those concerns live in each caller's own
+// wrapper instead of here.
+.sidebar {
+  height: 100%;
+  padding: v.$space-6 v.$space-5;
+  background: transparent;
+  overflow-y: auto;
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // legacy Edge/IE
+
+  &::-webkit-scrollbar {
+    display: none; // Chrome/Safari/new Edge
+  }
+}
+
+.eyebrow {
+  display: block;
+  font-size: v.$text-xs;
+  font-weight: v.$fw-bold;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: v.$g300;
+  margin: 0 0 v.$space-4 v.$space-1;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+}
+
+.cardBtn {
+  @include m.focus-ring;
+
+  display: flex;
+  align-items: flex-start;
+  gap: v.$space-3;
+  width: 100%;
+  padding: v.$space-5;
+  border: 1.5px solid transparent;
+  border-radius: var(--qtr-r-md);
+  background: v.$white;
+  box-shadow: v.$shadow-sm;
+  cursor: pointer;
+  text-align: left;
+  transition: box-shadow v.$dur-fast v.$ease-out, border-color v.$dur-fast v.$ease-out;
+
+  &:hover {
+    box-shadow: v.$shadow-md;
+  }
+}
+
+.active .cardBtn {
+  border-color: var(--qtr-primary);
+  background: v.$ivory;
+}
+
+.badge {
+  @include m.flex-center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: var(--qtr-r-pill);
+  background: v.$g100;
+  color: v.$g500;
+  font-weight: v.$fw-bold;
+  font-size: v.$text-sm;
+}
+
+.active .badge {
+  background: var(--qtr-primary);
+  color: v.$white;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+  min-width: 0;
+}
+
+.cardName {
+  font-weight: v.$fw-regular;
+  font-size: v.$text-base;
+  color: v.$g900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardBlurb {
+  font-size: v.$text-sm;
+  color: v.$g500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardStatus {
+  display: flex;
+  gap: v.$space-4;
+  margin-top: v.$space-1;
+  font-size: v.$text-sm;
+  font-weight: v.$fw-medium;
+  font-variant-numeric: tabular-nums;
+}
+
+.answered {
+  color: var(--qtr-primary);
+}
+
+.unanswered {
+  color: v.$g300;
+}
