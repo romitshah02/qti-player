@@ -1,4 +1,4 @@
-import type { ItemSummaryEntry, LegacyAttemptState, TestItem } from '@/types';
+import type { LegacyAttemptState, TestItem } from '@/types';
 
 export class TestControllerUtilities {
   items: TestItem[] | null = null;
@@ -63,14 +63,5 @@ export class TestControllerUtilities {
 
   isItemStateDefined(state: LegacyAttemptState | undefined | null): boolean {
     return typeof state !== 'undefined';
-  }
-
-  /** Per-item answered/unanswered summary. */
-  computeSummary(): ItemSummaryEntry[] {
-    return this.items!.map((item, index) => ({
-      identifier: item.identifier,
-      index,
-      answered: !this.isItemNullResponse(this.getItemStateByGuid(item.guid)),
-    }));
   }
 }

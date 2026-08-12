@@ -7,7 +7,6 @@ import {
   isInvalidResponses,
   isSkipResponse,
   resolveNavigationOutcome,
-  shouldShowSectionIntro,
 } from './navigation-service';
 import { TestControllerUtilities } from './test-controller';
 import type { LegacyAttemptState, TestItem } from '@/types';
@@ -115,19 +114,5 @@ describe('computeItemSubmissionMode', () => {
   it("falls back to the test's submission mode when the item doesn't override it", () => {
     expect(computeItemSubmissionMode({ identifier: 'i1', guid: 'g1' }, 'simultaneous')).toBe('simultaneous');
     expect(computeItemSubmissionMode({ identifier: 'i1', guid: 'g1', sessionControl: { submissionMode: 'individual' } }, 'simultaneous')).toBe('individual');
-  });
-});
-
-describe('shouldShowSectionIntro', () => {
-  it('shows only for the first item of a not-yet-shown section, when enabled', () => {
-    const items: TestItem[] = [{ identifier: 'i1', guid: 'g1' }, { identifier: 'i2', guid: 'g2' }];
-    const TC = new TestControllerUtilities();
-    TC.setItems(items);
-    const sections = [{ identifier: 'sec1', name: 'Sec', blurb: '', itemIdentifiers: ['i1', 'i2'] }];
-
-    expect(shouldShowSectionIntro(0, TC, sections, new Set(), true)).toBe(true);
-    expect(shouldShowSectionIntro(1, TC, sections, new Set(), true)).toBe(false); // not the first item
-    expect(shouldShowSectionIntro(0, TC, sections, new Set(['sec1']), true)).toBe(false); // already shown
-    expect(shouldShowSectionIntro(0, TC, sections, new Set(), false)).toBe(false); // disabled globally
   });
 });

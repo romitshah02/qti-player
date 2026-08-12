@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { defineQtiAssessmentItemPlayer } from '@longsightgroup/qti3-player';
 import { QtiRunnerProvider } from '@/context/QtiRunnerContext';
-import { useQtiRunnerState, useQtiRunnerActions } from '@/context/useQtiRunner';
+import { useQtiRunner } from '@/context/useQtiRunner';
 import { useQtiRunnerOrchestration } from '@/context/useQtiRunnerOrchestration';
 import { mountDockedStimulusPlayer } from '@/services/stimulus-player-mount';
 import { PlayerHeader } from '../PlayerHeader/PlayerHeader';
@@ -49,8 +49,7 @@ export function TestRunner(props: TestRunnerProps) {
 
 function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps) {
   ensureItemPlayerDefined();
-  const state = useQtiRunnerState();
-  const actions = useQtiRunnerActions();
+  const { state, ...actions } = useQtiRunner();
   const runner = useQtiRunnerOrchestration(config, { onPlayerEvent, onNavEvent });
 
   // Reassigned every render (not a mount-only effect) so the docked-stimulus

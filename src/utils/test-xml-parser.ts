@@ -28,10 +28,6 @@ export interface FlattenedSection {
   itemIdentifiers: (string | null)[];
 }
 
-function localName(el: Element): string {
-  return el.tagName;
-}
-
 function parseItemRef(el: Element): ItemRef {
   return {
     identifier: el.getAttribute('identifier'),
@@ -44,9 +40,9 @@ function parseSection(el: Element): ParsedSection {
   const rubricBlockText: string[] = [];
 
   for (const child of Array.from(el.children)) {
-    if (localName(child) === 'qti-assessment-item-ref') itemRefs.push(parseItemRef(child));
+    if (child.tagName === 'qti-assessment-item-ref') itemRefs.push(parseItemRef(child));
     // Sidebar's blurb is plain text (not rendered as HTML), so textContent only.
-    else if (localName(child) === 'qti-rubric-block') rubricBlockText.push((child.textContent || '').trim());
+    else if (child.tagName === 'qti-rubric-block') rubricBlockText.push((child.textContent || '').trim());
   }
 
   return {
@@ -59,7 +55,7 @@ function parseSection(el: Element): ParsedSection {
 
 function parseTestPart(el: Element): ParsedTestPart {
   const sections = Array.from(el.children)
-    .filter((child) => localName(child) === 'qti-assessment-section')
+    .filter((child) => child.tagName === 'qti-assessment-section')
     .map(parseSection);
 
   return {
@@ -79,7 +75,7 @@ export function parseAssessmentTest(xmlText: string): ParsedTest {
 
   const testEl = doc.documentElement;
   const parts = Array.from(testEl.children)
-    .filter((child) => localName(child) === 'qti-test-part')
+    .filter((child) => child.tagName === 'qti-test-part')
     .map(parseTestPart);
 
   return { title: testEl.getAttribute('title') || '', parts };

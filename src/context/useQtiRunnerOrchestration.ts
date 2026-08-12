@@ -9,7 +9,7 @@
  * separate hook files would only add indirection for passing the same shared
  * refs back and forth, not real separation.
  *
- * Rendered state lives in QtiRunnerContext (via useQtiRunnerState/Actions).
+ * Rendered state lives in QtiRunnerContext (via useQtiRunner).
  * Everything here is either a ref (long-lived service instances, the item
  * player element, timestamps, sets/maps that don't drive rendering) or a
  * plain function closing over the current render's state — there's exactly
@@ -18,12 +18,11 @@
  * arrays to get right.
  */
 import { useEffect, useRef } from 'react';
-import { useQtiRunnerActions, useQtiRunnerState } from './useQtiRunner';
+import { useQtiRunner } from './useQtiRunner';
 import type { Panel, Toast } from './QtiRunnerContext';
 import { TestControllerUtilities } from '@/services/test-controller';
 import { ContentLoader } from '@/services/content-loader';
 import type { ResolvedStimulus } from '@/services/content-loader';
-import { PnpFactory } from '@/services/pnp-factory';
 import { SessionControlFactory } from '@/services/session-control-factory';
 import * as LongsightPlayerAdapter from '@/services/longsight-player-adapter';
 import type { Configuration } from '@/services/longsight-player-adapter';
@@ -57,14 +56,12 @@ export interface UseQtiRunnerOrchestrationOptions {
 }
 
 export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiRunnerOrchestrationOptions = {}) {
-  const state = useQtiRunnerState();
-  const actions = useQtiRunnerActions();
+  const { state, ...actions } = useQtiRunner();
   const { onPlayerEvent, onNavEvent } = options;
 
   const itemPlayerRef = useRef<QtiAssessmentItemPlayerElement>(null);
   const TC = useRef(new TestControllerUtilities()).current;
   const contentLoaderRef = useRef<ContentLoader | null>(null);
-  const pnpRef = useRef<PnpFactory | null>(null);
   const sessionControlRef = useRef<SessionControlFactory | null>(null);
   const pciContextRef = useRef<unknown>(DEFAULT_PCI_CONTEXT);
   const testSubmissionModeRef = useRef('simultaneous');
@@ -118,10 +115,6 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     TC.setItemStates(new Map());
     shownSectionIntrosRef.current = new Set();
     showSectionIntroRef.current = config.showSectionIntro !== false;
-
-    const pnp = new PnpFactory();
-    pnp.setPnp(config.pnp);
-    pnpRef.current = pnp;
 
     const sessionControl = new SessionControlFactory();
     sessionControl.setSessionControl(config.sessionControl);

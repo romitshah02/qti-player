@@ -1,4 +1,3 @@
-import type { FlattenedSection } from '@/utils/test-xml-parser';
 import type { LegacyAttemptState, QtiDiagnosticMessage, QtiVariable, TestItem } from '@/types';
 import type { TestControllerUtilities } from './test-controller';
 
@@ -101,29 +100,4 @@ export function computeSummaryBreakdown(items: TestItem[], TC: TestControllerUti
 
 export function computeItemSubmissionMode(item: TestItem, testSubmissionMode: string): string {
   return item.sessionControl?.submissionMode || testSubmissionMode;
-}
-
-export function getSectionForIndex(index: number, TC: TestControllerUtilities, sections: FlattenedSection[]): FlattenedSection | null {
-  const item = TC.getItemAtIndex(index);
-  if (!item) return null;
-  return sections.find((s) => s.itemIdentifiers.includes(item.identifier)) || null;
-}
-
-export function isFirstItemOfSection(index: number, TC: TestControllerUtilities, sections: FlattenedSection[]): boolean {
-  const section = getSectionForIndex(index, TC, sections);
-  if (!section) return false;
-  return section.itemIdentifiers[0] === TC.getItemAtIndex(index).identifier;
-}
-
-export function shouldShowSectionIntro(
-  index: number,
-  TC: TestControllerUtilities,
-  sections: FlattenedSection[],
-  shownSectionIntros: Set<string>,
-  showSectionIntro: boolean,
-): boolean {
-  if (!showSectionIntro) return false;
-  const section = getSectionForIndex(index, TC, sections);
-  if (!section || shownSectionIntros.has(section.identifier as string)) return false;
-  return isFirstItemOfSection(index, TC, sections);
 }

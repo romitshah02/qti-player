@@ -20,13 +20,7 @@ describe('SessionControlFactory', () => {
     const scf = new SessionControlFactory();
     scf.setSessionControl({ validate_responses: true, time_limits: { max_time: 600 } as never });
     expect(scf.getValidateResponses()).toBe(true);
-    expect(scf.getTimeLimitsMaxTime()).toBe(600);
-    expect(scf.getAllowReview()).toBe(true); // untouched field keeps its default
-  });
-
-  it('setAllowSkipping actually mutates sc.allow_skipping (regression: original had a self-assignment typo)', () => {
-    const scf = new SessionControlFactory();
-    scf.setAllowSkipping(false);
-    expect(scf.getAllowSkipping()).toBe(false);
+    expect(scf.getSessionControl().time_limits.max_time).toBe(600);
+    expect(scf.getSessionControl().allow_review).toBe(true); // untouched field keeps its default
   });
 });

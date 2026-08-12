@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TestControllerUtilities } from './test-controller';
-import type { LegacyAttemptState, TestItem } from '@/types';
+import type { LegacyAttemptState } from '@/types';
 
 function makeState(responseVariables: LegacyAttemptState['responseVariables']): LegacyAttemptState {
   return { status: 'interacting', responseVariables, outcomeVariables: [], validationMessages: [] };
@@ -26,22 +26,5 @@ describe('TestControllerUtilities.isItemNullResponse', () => {
   it('is answered once any non-built-in variable has a non-null value', () => {
     const state = makeState([{ identifier: 'RESPONSE', value: 'A' }]);
     expect(tc.isItemNullResponse(state)).toBe(false);
-  });
-});
-
-describe('TestControllerUtilities.computeSummary', () => {
-  it('reports per-item answered/unanswered against itemStates', () => {
-    const tc = new TestControllerUtilities();
-    const items: TestItem[] = [
-      { identifier: 'item1', guid: 'g1' },
-      { identifier: 'item2', guid: 'g2' },
-    ];
-    tc.setItems(items);
-    tc.setItemStates(new Map([['g1', makeState([{ identifier: 'RESPONSE', value: 'A' }])]]));
-
-    expect(tc.computeSummary()).toEqual([
-      { identifier: 'item1', index: 0, answered: true },
-      { identifier: 'item2', index: 1, answered: false },
-    ]);
   });
 });

@@ -2,8 +2,8 @@
  * QtiRunnerContext — owns the runner's pure UI/data state: which panel is
  * showing, current/review item index, per-item display metadata, and
  * transient UI (drawer/modal/toast open state). Long-lived service
- * instances (TestControllerUtilities, ContentLoader, PnpFactory,
- * SessionControlFactory) and the item-player ref are NOT here — they're
+ * instances (TestControllerUtilities, ContentLoader, SessionControlFactory)
+ * and the item-player ref are NOT here — they're
  * mutable, non-rendered, and held in refs by useQtiRunnerOrchestration
  * instead (putting a mutable class instance through a reducer buys nothing).
  */

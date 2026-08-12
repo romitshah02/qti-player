@@ -112,7 +112,6 @@ export interface RunnerConfig {
   items: TestItem[];
   sections?: ConfigSection[];
   submissionMode?: string;
-  pnp?: Record<string, unknown>;
   sessionControl?: Partial<SessionControl>;
   pciContext?: unknown;
   previewUrl?: string;
