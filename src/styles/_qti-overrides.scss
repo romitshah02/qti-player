@@ -85,6 +85,14 @@ qti-assessment-item-player {
   max-inline-size: min(480px, 100%) !important;
 }
 
+.qti-item-panel .qti3-feedback-block {
+  padding: v.$space-3;
+  border-inline-start: 4px solid v.$info;
+  border-radius: var(--qtr-r-xs);
+  background: v.$info-bg;
+  color: v.$g900;
+}
+
 .qti-item-panel .qti3-text-input,
 .qti-item-panel .qti3-textarea {
   border: 1.5px solid #e5e7eb;

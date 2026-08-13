@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { detectInteractionType, findUnsupportedInteraction, isAdaptiveItem } from './interaction-type-detector';
+import { detectInteractionType, findUnsupportedInteraction, hasFeedbackContent, isAdaptiveItem } from './interaction-type-detector';
 
 describe('interaction-type-detector', () => {
   it('detects the most specific matching tag (graphic-gap-match before gap-match)', () => {
@@ -16,5 +16,12 @@ describe('interaction-type-detector', () => {
   it('finds an interaction tag missing from the supported set', () => {
     expect(findUnsupportedInteraction('<qti-choice-interaction/><qti-made-up-interaction/>')).toBe('qti-made-up-interaction');
     expect(findUnsupportedInteraction('<qti-choice-interaction/><qti-slider-interaction/>')).toBeNull();
+  });
+
+  it('detects any authored feedback content (modal, block, or inline)', () => {
+    expect(hasFeedbackContent('<qti-text-entry-interaction/>')).toBe(false);
+    expect(hasFeedbackContent('<qti-modal-feedback identifier="correct"/>')).toBe(true);
+    expect(hasFeedbackContent('<qti-feedback-block identifier="solution"/>')).toBe(true);
+    expect(hasFeedbackContent('<qti-feedback-inline identifier="correct"/>')).toBe(true);
   });
 });

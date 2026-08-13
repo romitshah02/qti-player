@@ -3,16 +3,20 @@ import {
   computeItemSubmissionMode,
   computeSummaryBreakdown,
   computeTotalScore,
-  isAdaptiveIncomplete,
   isInvalidResponses,
   isSkipResponse,
   resolveNavigationOutcome,
 } from './navigation-service';
 import { TestControllerUtilities } from './test-controller';
+import type { NavigationContext } from './navigation-service';
 import type { LegacyAttemptState, TestItem } from '@/types';
 
 function state(overrides: Partial<LegacyAttemptState> = {}): LegacyAttemptState {
   return { status: 'interacting', responseVariables: [], outcomeVariables: [], validationMessages: [], ...overrides };
+}
+
+function ctx(overrides: Partial<NavigationContext> = {}): NavigationContext {
+  return { validateResponses: false, ...overrides };
 }
 
 describe('isSkipResponse', () => {
@@ -32,38 +36,25 @@ describe('isInvalidResponses', () => {
   });
 });
 
-describe('isAdaptiveIncomplete', () => {
-  it('only blocks adaptive items whose completionStatus is not completed', () => {
-    expect(isAdaptiveIncomplete([], false)).toBe(false); // not adaptive
-    expect(isAdaptiveIncomplete([], true)).toBe(false); // no completionStatus outcome at all
-    expect(isAdaptiveIncomplete([{ identifier: 'completionStatus', value: 'incomplete' }], true)).toBe(true);
-    expect(isAdaptiveIncomplete([{ identifier: 'completionStatus', value: 'completed' }], true)).toBe(false);
-  });
-});
-
 describe('resolveNavigationOutcome', () => {
   it('advancePart always proceeds as advancePart, regardless of completeness', () => {
     const s = state({ outcomeVariables: [{ identifier: 'completionStatus', value: 'incomplete' }] });
-    expect(resolveNavigationOutcome('advancePart', s, { validateResponses: false, isAdaptive: true })).toEqual({ action: 'advancePart' });
+    expect(resolveNavigationOutcome('advancePart', s, ctx())).toEqual({ action: 'advancePart' });
   });
 
   it('openReview never blocks on incompleteness', () => {
     const s = state({ outcomeVariables: [{ identifier: 'completionStatus', value: 'incomplete' }] });
-    expect(resolveNavigationOutcome('openReview', s, { validateResponses: false, isAdaptive: true })).toEqual({ action: 'proceed' });
+    expect(resolveNavigationOutcome('openReview', s, ctx())).toEqual({ action: 'proceed' });
   });
 
-  it('navigateNextItem blocks on an incomplete adaptive item, distinct from invalid responses', () => {
+  it('navigateNextItem no longer blocks on an incomplete adaptive item — same as any other item', () => {
     const s = state({ outcomeVariables: [{ identifier: 'completionStatus', value: 'incomplete' }] });
-    expect(resolveNavigationOutcome('navigateNextItem', s, { validateResponses: false, isAdaptive: true })).toEqual({
-      action: 'blocked',
-      reason: 'adaptive-incomplete',
-      message: 'Complete this item before moving on.',
-    });
+    expect(resolveNavigationOutcome('navigateNextItem', s, ctx())).toEqual({ action: 'proceed' });
   });
 
   it('navigateNextItem blocks on validation messages when validateResponses is on', () => {
     const s = state({ validationMessages: [{ message: 'RESPONSE is required' }] });
-    expect(resolveNavigationOutcome('navigateNextItem', s, { validateResponses: true, isAdaptive: false })).toEqual({
+    expect(resolveNavigationOutcome('navigateNextItem', s, ctx({ validateResponses: true }))).toEqual({
       action: 'blocked',
       reason: 'invalid-responses',
       message: 'RESPONSE is required',
@@ -72,15 +63,15 @@ describe('resolveNavigationOutcome', () => {
 
   it('navigateNextItem proceeds when complete and valid', () => {
     const s = state();
-    expect(resolveNavigationOutcome('navigateNextItem', s, { validateResponses: true, isAdaptive: true })).toEqual({ action: 'proceed' });
+    expect(resolveNavigationOutcome('navigateNextItem', s, ctx({ validateResponses: true }))).toEqual({ action: 'proceed' });
   });
 
   it('a null target (item-internal end-attempt-interaction) resolves to skip or endAttemptInteraction', () => {
     const skipState = state({ responseVariables: [{ identifier: 'SKIP', value: true }] });
-    expect(resolveNavigationOutcome(null, skipState, { validateResponses: false, isAdaptive: false })).toEqual({ action: 'skip' });
+    expect(resolveNavigationOutcome(null, skipState, ctx())).toEqual({ action: 'skip' });
 
     const hintState = state({ responseVariables: [{ identifier: 'HINT_REQUESTED', value: true }] });
-    expect(resolveNavigationOutcome(null, hintState, { validateResponses: false, isAdaptive: false })).toEqual({ action: 'endAttemptInteraction' });
+    expect(resolveNavigationOutcome(null, hintState, ctx())).toEqual({ action: 'endAttemptInteraction' });
   });
 });
 

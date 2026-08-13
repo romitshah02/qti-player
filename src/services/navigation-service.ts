@@ -12,7 +12,7 @@ export type NavigationTarget =
 
 export interface NavigationDecision {
   action: 'advancePart' | 'blocked' | 'proceed' | 'skip' | 'endAttemptInteraction';
-  reason?: 'invalid-responses' | 'adaptive-incomplete';
+  reason?: 'invalid-responses';
   message?: string;
 }
 
@@ -28,15 +28,8 @@ export function isInvalidResponses(validationMessages: QtiDiagnosticMessage[], v
   return validationMessages.length > 0;
 }
 
-export function isAdaptiveIncomplete(outcomeVariables: QtiVariable[], isAdaptive: boolean): boolean {
-  if (!isAdaptive) return false;
-  const completionStatus = outcomeVariables.find((v) => v.identifier === 'completionStatus');
-  return !!completionStatus && completionStatus.value !== 'completed';
-}
-
 export interface NavigationContext {
   validateResponses: boolean;
-  isAdaptive: boolean;
 }
 
 /**
@@ -52,9 +45,6 @@ export function resolveNavigationOutcome(target: NavigationTarget, state: Legacy
   if (target === 'navigateNextItem' || target === 'navigatePrevItem' || target === 'navigateItem' || target === 'navigateEnd') {
     if (isInvalidResponses(state.validationMessages, ctx.validateResponses)) {
       return { action: 'blocked', reason: 'invalid-responses', message: state.validationMessages[0]?.message };
-    }
-    if (isAdaptiveIncomplete(state.outcomeVariables, ctx.isAdaptive)) {
-      return { action: 'blocked', reason: 'adaptive-incomplete', message: 'Complete this item before moving on.' };
     }
     return { action: 'proceed' };
   }

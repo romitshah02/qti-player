@@ -19,6 +19,11 @@ export interface QtiEndAttemptEventDetail {
   state: QtiAttemptStateV1;
 }
 
+export interface QtiValidationEventDetail {
+  validationMessages: QtiDiagnosticMessage[];
+  state: QtiAttemptStateV1;
+}
+
 export interface QtiDiagnosticsEventDetail {
   diagnostics: QtiDiagnosticMessage[];
 }

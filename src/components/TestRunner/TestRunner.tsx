@@ -14,7 +14,7 @@ import { Toast } from '../Toast/Toast';
 import { ResultsScreen } from '../ResultsScreen/ResultsScreen';
 import { StimulusMount } from '../StimulusMount/StimulusMount';
 import type { NavEvent, PlayerEvent, RunnerConfig } from '@/types';
-import type { QtiCatalogRequestEventDetail, QtiDiagnosticsEventDetail, QtiEndAttemptEventDetail } from '@/types/qti-player-element';
+import type { QtiCatalogRequestEventDetail, QtiDiagnosticsEventDetail, QtiEndAttemptEventDetail, QtiValidationEventDetail } from '@/types/qti-player-element';
 import styles from './TestRunner.module.scss';
 
 // React renders <qti-assessment-item-player> as a plain DOM element — unlike
@@ -89,16 +89,19 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
     if (state.currentPanel === 'item') {
       const onSuspend = (e: Event) => runner.handleSuspendAttemptCompleted(e as CustomEvent<QtiEndAttemptEventDetail>);
       const onEndAttempt = (e: Event) => runner.handleEndAttemptCompleted(e as CustomEvent<QtiEndAttemptEventDetail>);
+      const onValidation = (e: Event) => runner.handleValidationEvent(e as CustomEvent<QtiValidationEventDetail>);
       const onDiagnostics = (e: Event) => runner.displayItemAlertEvent(e as CustomEvent<QtiDiagnosticsEventDetail>);
       const onCatalogRequest = (e: Event) => runner.handleItemCatalogEvent(e as CustomEvent<QtiCatalogRequestEventDetail>);
 
       el.addEventListener('qti-suspend', onSuspend);
       el.addEventListener('qti-endattempt', onEndAttempt);
+      el.addEventListener('qti-validation', onValidation);
       el.addEventListener('qti-diagnostics', onDiagnostics);
       el.addEventListener('qti-catalogrequest', onCatalogRequest);
       cleanups.push(
         () => el.removeEventListener('qti-suspend', onSuspend),
         () => el.removeEventListener('qti-endattempt', onEndAttempt),
+        () => el.removeEventListener('qti-validation', onValidation),
         () => el.removeEventListener('qti-diagnostics', onDiagnostics),
         () => el.removeEventListener('qti-catalogrequest', onCatalogRequest),
       );
@@ -177,10 +180,10 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
                       ref={runner.itemPlayerRef}
                       style={state.currentItemUnsupportedTag ? { display: 'none' } : undefined}
                     />
-                    {state.currentItemIsAdaptive && (
+                    {(state.currentItemIsAdaptive || state.currentItemHasFeedback) && (
                       <div className={styles.qtiAdaptiveNext}>
                         <button type="button" className={styles.qtiAdaptiveNextBtn} disabled={state.isBtnNextDisabled} onClick={runner.handleAdvancePart}>
-                          Next
+                          Check
                         </button>
                       </div>
                     )}

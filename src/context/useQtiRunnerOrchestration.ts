@@ -27,7 +27,7 @@ import { SessionControlFactory } from '@/services/session-control-factory';
 import * as LongsightPlayerAdapter from '@/services/longsight-player-adapter';
 import type { Configuration } from '@/services/longsight-player-adapter';
 import * as TelemetryService from '@/services/telemetry-service';
-import { detectInteractionType, findUnsupportedInteraction, isAdaptiveItem } from '@/utils/interaction-type-detector';
+import { detectInteractionType, findUnsupportedInteraction, hasFeedbackContent, isAdaptiveItem } from '@/utils/interaction-type-detector';
 import { findDockingElement, hasDockingDiv } from '@/utils/stimulus-docking';
 import {
   computeItemSubmissionMode,
@@ -38,7 +38,7 @@ import {
 import type { NavigationTarget } from '@/services/navigation-service';
 import type { FlattenedSection } from '@/utils/test-xml-parser';
 import type { ItemSummaryEntry, LegacyAttemptState, NavEvent, PlayerEvent, RunnerConfig, TestItem } from '@/types';
-import type { QtiAssessmentItemPlayerElement, QtiCatalogRequestEventDetail, QtiDiagnosticsEventDetail, QtiEndAttemptEventDetail } from '@/types/qti-player-element';
+import type { QtiAssessmentItemPlayerElement, QtiCatalogRequestEventDetail, QtiDiagnosticsEventDetail, QtiEndAttemptEventDetail, QtiValidationEventDetail } from '@/types/qti-player-element';
 
 const DEFAULT_PCI_CONTEXT = { renderer2p0: '/assets/pci/pci.html' };
 
@@ -215,8 +215,8 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   }
 
   function getConfiguration(guid: string): Configuration {
-    const configuration: Configuration = { status: 'interacting' };
     const itemState = TC.getItemStates()?.get(guid);
+    const configuration: Configuration = { status: itemState?.status ?? 'interacting' };
     if (typeof itemState !== 'undefined') configuration.state = itemState;
     configuration.sessionControl = sessionControlRef.current!.getSessionControl();
     return configuration;
@@ -254,12 +254,17 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     const interactionType = item.interactionType || detectInteractionType(xml);
     const unsupportedTag = findUnsupportedInteraction(xml);
     if (unsupportedTag) {
-      actions.setItemMeta({ interactionType, isAdaptive: false, unsupportedTag });
+      actions.setItemMeta({ interactionType, isAdaptive: false, hasFeedback: false, unsupportedTag });
       TelemetryService.logError(`Unsupported interaction: ${unsupportedTag}`);
       return;
     }
 
-    actions.setItemMeta({ interactionType, isAdaptive: isAdaptiveItem(xml), unsupportedTag: null });
+    actions.setItemMeta({
+      interactionType,
+      isAdaptive: isAdaptiveItem(xml),
+      hasFeedback: hasFeedbackContent(xml),
+      unsupportedTag: null,
+    });
 
     const configuration = getConfiguration(item.guid);
     destroyDockedStimuli();
@@ -278,7 +283,12 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
       throw error;
     }
     const interactionType = item.interactionType || detectInteractionType(xml);
-    actions.setItemMeta({ interactionType, isAdaptive: state.currentItemIsAdaptive, unsupportedTag: null });
+    actions.setItemMeta({
+      interactionType,
+      isAdaptive: state.currentItemIsAdaptive,
+      hasFeedback: state.currentItemHasFeedback,
+      unsupportedTag: null,
+    });
 
     const configuration = getConfiguration(item.guid);
     configuration.status = 'review'; // disables all interactions
@@ -550,6 +560,14 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     evaluateResults(toEvaluateResultsData(event));
   }
 
+  function handleValidationEvent(event: CustomEvent<QtiValidationEventDetail>) {
+    const target = pendingAttemptTargetRef.current;
+    pendingAttemptTargetRef.current = null;
+    const navigationDirection = target === 'navigatePrevItem' ? 'prev' : 'next';
+    actions.setButtonDisabled(navigationDirection, false);
+    actions.setToast({ type: 'error', message: event.detail.validationMessages[0]?.message || 'Unable to continue.' });
+  }
+
   function handleSuspendAttemptCompleted(event: CustomEvent<QtiEndAttemptEventDetail>) {
     evaluateResults(toEvaluateResultsData(event));
   }
@@ -562,6 +580,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   }
 
   function evaluateResults(data: { target: NavigationTarget; state: LegacyAttemptState }) {
+    if (TC.isItemNullResponse(data.state)) data.state.status = 'interacting';
     if (data.target !== 'openReview') raiseAssessAndResponse(data.state);
     setTestStateItemState(data.state);
     handleEvaluatedAttempt(data.target, data.state);
@@ -595,7 +614,6 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   function handleEvaluatedAttempt(target: NavigationTarget, itemState: LegacyAttemptState) {
     const decision = resolveNavigationOutcome(target, itemState, {
       validateResponses: sessionControlRef.current!.getValidateResponses(),
-      isAdaptive: state.currentItemIsAdaptive,
     });
 
     switch (decision.action) {
@@ -680,6 +698,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
 
     handleEndAttemptCompleted,
     handleSuspendAttemptCompleted,
+    handleValidationEvent,
     handleStimulusPlayerReady,
     handleStimulusCatalogEvent,
     displayItemAlertEvent,

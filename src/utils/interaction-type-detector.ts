@@ -44,6 +44,10 @@ export function isAdaptiveItem(xml: string): boolean {
   return /<qti-assessment-item\b[^>]*\badaptive=["']true["']/i.test(xml);
 }
 
+export function hasFeedbackContent(xml: string): boolean {
+  return /<qti-(modal-feedback|feedback-block|feedback-inline)\b/.test(xml);
+}
+
 const SUPPORTED_INTERACTION_TAGS = new Set(TAG_LABELS.map(([tag]) => tag));
 
 /**

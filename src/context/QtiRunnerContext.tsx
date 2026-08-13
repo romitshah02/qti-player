@@ -31,6 +31,7 @@ export interface RunnerState {
   sections: FlattenedSection[];
   currentItemInteractionType: string | null;
   currentItemIsAdaptive: boolean;
+  currentItemHasFeedback: boolean;
   currentItemUnsupportedTag: string | null;
   drawerOpen: boolean;
   submitModalOpen: boolean;
@@ -50,6 +51,7 @@ export const initialState: RunnerState = {
   sections: [],
   currentItemInteractionType: null,
   currentItemIsAdaptive: false,
+  currentItemHasFeedback: false,
   currentItemUnsupportedTag: null,
   drawerOpen: false,
   submitModalOpen: false,
@@ -81,7 +83,7 @@ export type RunnerAction =
   | { type: typeof RunnerActionTypes.SET_PENDING_ITEM_INDEX; payload: number | null }
   | { type: typeof RunnerActionTypes.SET_BUTTON_DISABLED; payload: { which: 'next' | 'prev'; disabled: boolean } }
   | { type: typeof RunnerActionTypes.UPDATE_BUTTON_STATE }
-  | { type: typeof RunnerActionTypes.SET_ITEM_META; payload: { interactionType: string | null; isAdaptive: boolean; unsupportedTag: string | null } }
+  | { type: typeof RunnerActionTypes.SET_ITEM_META; payload: { interactionType: string | null; isAdaptive: boolean; hasFeedback: boolean; unsupportedTag: string | null } }
   | { type: typeof RunnerActionTypes.SET_STIMULI; payload: ResolvedStimulus[] }
   | { type: typeof RunnerActionTypes.SET_DRAWER_OPEN; payload: boolean }
   | { type: typeof RunnerActionTypes.SET_SUBMIT_MODAL_OPEN; payload: boolean }
@@ -124,6 +126,7 @@ export function runnerReducer(state: RunnerState, action: RunnerAction): RunnerS
         ...state,
         currentItemInteractionType: action.payload.interactionType,
         currentItemIsAdaptive: action.payload.isAdaptive,
+        currentItemHasFeedback: action.payload.hasFeedback,
         currentItemUnsupportedTag: action.payload.unsupportedTag,
       };
 
@@ -165,7 +168,7 @@ export interface QtiRunnerContextValue {
   setPendingItemIndex: (index: number | null) => void;
   setButtonDisabled: (which: 'next' | 'prev', disabled: boolean) => void;
   updateButtonState: () => void;
-  setItemMeta: (meta: { interactionType: string | null; isAdaptive: boolean; unsupportedTag: string | null }) => void;
+  setItemMeta: (meta: { interactionType: string | null; isAdaptive: boolean; hasFeedback: boolean; unsupportedTag: string | null }) => void;
   setStimuli: (stimuli: ResolvedStimulus[]) => void;
   setDrawerOpen: (open: boolean) => void;
   setSubmitModalOpen: (open: boolean) => void;
@@ -195,7 +198,7 @@ export function QtiRunnerProvider({ children }: QtiRunnerProviderProps) {
   );
   const updateButtonState = useCallback(() => dispatch({ type: RunnerActionTypes.UPDATE_BUTTON_STATE }), []);
   const setItemMeta = useCallback(
-    (meta: { interactionType: string | null; isAdaptive: boolean; unsupportedTag: string | null }) =>
+    (meta: { interactionType: string | null; isAdaptive: boolean; hasFeedback: boolean; unsupportedTag: string | null }) =>
       dispatch({ type: RunnerActionTypes.SET_ITEM_META, payload: meta }),
     [],
   );
