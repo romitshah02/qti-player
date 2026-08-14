@@ -1,0 +1,38 @@
+// =============================================================================
+// Portal Theme Bridge — QTI 3 Player React
+//
+// Bridges the player's accent color + font + radius to the Sunbird Spark
+// Portal's CSS custom properties (set on document.documentElement by the
+// portal's ThemeProvider). Custom properties are INHERITED, not shadow-DOM-
+// encapsulated, so :host — the shadow root's host element used when this
+// player is mounted as a web component (see web-component/element-registration.tsx)
+// — already sees the portal's live values with no JS/config wiring at all;
+// :root is included too for the dev harness (src/App.tsx), which renders
+// TestRunner directly with no shadow root.
+//
+// Portal variable format: --primary: H S% L% (raw HSL triplet, no hsl() wrapper)
+// Portal font token:      --app-font-family
+// Portal radius tokens:   --r-xxs / --r-xs / --r-sm / --r-md / --r-lg / --r-pill
+//
+// The fallback values below are what actually renders standalone (dev
+// harness, outside the portal) — they reproduce _tokens.scss's own terracotta
+// default (#a85236/#8f4329 converted to HSL). Inside the portal, its live
+// values take over automatically.
+// =============================================================================
+@use 'variables' as v;
+
+:host,
+:root {
+  --qtr-font-sans: var(--app-font-family, #{v.$ff-display});
+
+  --qtr-primary:        hsl(var(--primary, 15 51% 44%));
+  --qtr-primary-hover:  hsl(var(--primary, 14 50% 37%));
+  --qtr-primary-subtle: hsl(var(--primary, 15 51% 44%) / 0.12);
+
+  --qtr-r-xxs:  var(--r-xxs, 0.25rem);
+  --qtr-r-xs:   var(--r-xs, 0.625rem);
+  --qtr-r-sm:   var(--r-sm, 0.5rem);
+  --qtr-r-md:   var(--r-md, 0.875rem);
+  --qtr-r-lg:   var(--r-lg, 1.25rem);
+  --qtr-r-pill: var(--r-pill, 9999px);
+}
