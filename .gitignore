@@ -23,3 +23,5 @@ web-component/assets
 *.njsproj
 *.sln
 *.sw?
+
+package-lock.json

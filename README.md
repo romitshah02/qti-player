@@ -1,4 +1,4 @@
-# qti3-test-runner-react
+# test-qti-player-web-component-react
 
 QTI 3 assessment test runner: item navigation, review, section intros,
 submit/restart, shared-stimulus docking, Sunbird telemetry. Built as a React
@@ -46,16 +46,19 @@ npm run type-check     # tsc --noEmit
 npm run build
 ```
 
-Runs `tsc -b`, `vite build`, then [scripts/build-wc.js](scripts/build-wc.js), which:
+Runs `tsc -b`, `vite build` (a single IIFE bundle from the web-component
+entry, not `main.tsx`), then [scripts/build-wc.js](scripts/build-wc.js), which:
 
-1. Embeds the built CSS into the JS bundle as a `BUNDLED_CSS` constant (so the shadow root is styled with no runtime fetch)
-2. Copies the self-contained bundle to `dist-wc/qti3-test-runner.js`
-3. Writes an example `dist-wc/index.html`
+1. Embeds the built CSS into the JS bundle as a `BUNDLED_CSS` constant (injected into the shadow root — no runtime fetch)
+2. Writes a host-safe `styles.css` containing **only** `@font-face` rules — the full reset/component CSS stays inside `BUNDLED_CSS` so it never leaks into a host page that links this file
+3. Copies both, plus an example `index.html`, to `dist-wc/assets/qti-player/`
+4. Generates `dist-wc/package.json` (name `test-qti-player-web-component-react`, version taken from this project's `package.json`) so CI can `npm publish ./dist-wc` with no committed, drift-prone copy
 
 ## Using the web component
 
 ```html
 <script src="qti3-test-runner.js"></script>
+<link rel="stylesheet" href="styles.css">
 <qti3-test-runner runner-config='{ "items": [...] }'></qti3-test-runner>
 ```
 
