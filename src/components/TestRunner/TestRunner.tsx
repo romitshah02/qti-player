@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { defineQtiAssessmentItemPlayer } from '@longsightgroup/qti3-player';
+import { QtiAssessmentItemPlayer } from '@longsightgroup/qti3-player-react';
 import { QtiRunnerProvider } from '@/context/QtiRunnerContext';
 import { useQtiRunner } from '@/context/useQtiRunner';
 import { useQtiRunnerOrchestration } from '@/context/useQtiRunnerOrchestration';
@@ -14,19 +14,7 @@ import { Toast } from '../Toast/Toast';
 import { ResultsScreen } from '../ResultsScreen/ResultsScreen';
 import { StimulusMount } from '../StimulusMount/StimulusMount';
 import type { NavEvent, PlayerEvent, RunnerConfig } from '@/types';
-import type { QtiCatalogRequestEventDetail, QtiDiagnosticsEventDetail, QtiEndAttemptEventDetail, QtiValidationEventDetail } from '@/types/qti-player-element';
 import styles from './TestRunner.module.scss';
-
-// React renders <qti-assessment-item-player> as a plain DOM element — unlike
-// Vue there's no compiler-level "unknown custom element" warning to
-// suppress, defineQtiAssessmentItemPlayer() just needs to run once before
-// first render.
-let itemPlayerDefined = false;
-function ensureItemPlayerDefined() {
-  if (itemPlayerDefined) return;
-  defineQtiAssessmentItemPlayer();
-  itemPlayerDefined = true;
-}
 
 function unsupportedInteractionLabel(tag: string | null): string {
   if (!tag) return '';
@@ -48,7 +36,6 @@ export function TestRunner(props: TestRunnerProps) {
 }
 
 function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps) {
-  ensureItemPlayerDefined();
   const { state, ...actions } = useQtiRunner();
   const runner = useQtiRunnerOrchestration(config, { onPlayerEvent, onNavEvent });
 
@@ -69,46 +56,6 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
     // Mount-only — config is the one prop this app takes and isn't expected
     // to change after mount (matches the original's mounted()-only initialize).
   }, []);
-
-  // No dependency array: re-binds every render so the listeners always call
-  // the current render's handlers (state.currentItem etc. change across
-  // renders within the same 'item' panel, with no panel/element remount to
-  // key an effect on). Cheap — a handful of listeners on one element,
-  // rebound only as often as this component re-renders from real user
-  // actions, not a hot path.
-  useEffect(() => {
-    const el = runner.itemPlayerRef.current;
-    if (!el) return;
-
-    const onReady = () => runner.handleItemReady();
-    el.addEventListener('qti-ready', onReady);
-    const cleanups = [() => el.removeEventListener('qti-ready', onReady)];
-
-    // The review panel only ever listens for qti-ready (status: 'review'
-    // disables all interactions, so nothing else should fire there anyway).
-    if (state.currentPanel === 'item') {
-      const onSuspend = (e: Event) => runner.handleSuspendAttemptCompleted(e as CustomEvent<QtiEndAttemptEventDetail>);
-      const onEndAttempt = (e: Event) => runner.handleEndAttemptCompleted(e as CustomEvent<QtiEndAttemptEventDetail>);
-      const onValidation = (e: Event) => runner.handleValidationEvent(e as CustomEvent<QtiValidationEventDetail>);
-      const onDiagnostics = (e: Event) => runner.displayItemAlertEvent(e as CustomEvent<QtiDiagnosticsEventDetail>);
-      const onCatalogRequest = (e: Event) => runner.handleItemCatalogEvent(e as CustomEvent<QtiCatalogRequestEventDetail>);
-
-      el.addEventListener('qti-suspend', onSuspend);
-      el.addEventListener('qti-endattempt', onEndAttempt);
-      el.addEventListener('qti-validation', onValidation);
-      el.addEventListener('qti-diagnostics', onDiagnostics);
-      el.addEventListener('qti-catalogrequest', onCatalogRequest);
-      cleanups.push(
-        () => el.removeEventListener('qti-suspend', onSuspend),
-        () => el.removeEventListener('qti-endattempt', onEndAttempt),
-        () => el.removeEventListener('qti-validation', onValidation),
-        () => el.removeEventListener('qti-diagnostics', onDiagnostics),
-        () => el.removeEventListener('qti-catalogrequest', onCatalogRequest),
-      );
-    }
-
-    return () => cleanups.forEach((fn) => fn());
-  });
 
   return (
     <div className={styles.appShell}>
@@ -176,9 +123,19 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
                         <p>This question's interaction type ("{unsupportedInteractionLabel(state.currentItemUnsupportedTag)}") isn't supported yet — you can continue to the next question.</p>
                       </div>
                     )}
-                    <qti-assessment-item-player
-                      ref={runner.itemPlayerRef}
+                    <QtiAssessmentItemPlayer
+                      // Vue (a dependency of the qti3-stimulus-player island) ships a global
+                      // JSX namespace augmentation that merges into React's own project-wide,
+                      // forcing every forwardRef component's ref prop into an intersection
+                      // with Vue's callback-shaped VNodeRef that no real ref value satisfies.
+                      ref={runner.itemPlayerRef as any}
                       style={state.currentItemUnsupportedTag ? { display: 'none' } : undefined}
+                      onReady={runner.handleItemReady}
+                      onSuspend={runner.handleSuspendAttemptCompleted}
+                      onEndAttempt={runner.handleEndAttemptCompleted}
+                      onValidation={runner.handleValidationEvent}
+                      onDiagnostics={runner.displayItemAlertEvent}
+                      onCatalogRequest={runner.handleItemCatalogEvent}
                     />
                     {(state.currentItemIsAdaptive || state.currentItemHasFeedback) && (
                       <div className={styles.qtiAdaptiveNext}>
@@ -226,7 +183,7 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
                         <span className={styles.qtiCategory}>{state.currentItemInteractionType}</span>
                       </div>
                     )}
-                    <qti-assessment-item-player ref={runner.itemPlayerRef} />
+                    <QtiAssessmentItemPlayer ref={runner.itemPlayerRef as any} onReady={runner.handleItemReady} />
                   </div>
                 </div>
               </div>

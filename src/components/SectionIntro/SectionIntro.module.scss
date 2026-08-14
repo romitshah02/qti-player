@@ -12,49 +12,63 @@
 
 .card {
   width: 100%;
-  max-width: 560px;
+  max-width: 800px;
   margin: auto;
   background: v.$ivory;
-  border-radius: var(--qtr-r-md);
-  box-shadow: v.$shadow-sm;
+  border-radius: var(--qtr-r-lg);
+  box-shadow: v.$shadow-lg;
   overflow: hidden;
 }
 
 .banner {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: v.$space-4;
-  padding: v.$space-8 v.$space-8 v.$space-6;
-  background: var(--qtr-primary-subtle);
+  gap: v.$space-5;
+  padding: v.$space-10;
+  background: var(--qtr-primary);
+  overflow: hidden;
 
   @include m.mobile {
-    padding: v.$space-6 v.$space-5 v.$space-5;
+    padding: v.$space-6;
+  }
+
+  @include m.short {
+    padding: v.$space-3;
+    gap: v.$space-3;
   }
 }
 
 .badge {
   @include m.flex-center;
   flex-shrink: 0;
-  width: 3rem;
-  height: 3rem;
-  border-radius: var(--qtr-r-pill);
-  background: var(--qtr-primary);
+  width: 4rem;
+  height: 4rem;
+  border-radius: var(--qtr-r-md);
+  background: rgba(255, 255, 255, 0.22);
   color: v.$white;
   font-weight: v.$fw-bold;
-  font-size: v.$text-lg;
+  font-size: v.$text-2xl;
+
+  @include m.short {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
 }
 
 .bannerText {
+  position: relative;
+  z-index: 1;
   min-width: 0;
 }
 
 .eyebrow {
   margin: 0 0 v.$space-1;
-  font-size: v.$text-xs;
-  font-weight: v.$fw-bold;
+  font-size: v.$text-sm;
+  font-weight: v.$fw-semibold;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--qtr-primary-hover);
+  color: rgba(255, 255, 255, 0.75);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -62,20 +76,48 @@
 
 .title {
   margin: 0;
-  font-size: v.$text-2xl;
-  font-weight: v.$fw-semibold;
-  color: v.$g900;
+  font-size: clamp(1.25rem, 3.5vw, #{v.$text-xl});
+  font-weight: v.$fw-bold;
+  color: v.$white;
 
-  @include m.mobile {
-    font-size: v.$text-xl;
+  @include m.short {
+    font-size: v.$text-lg;
+  }
+}
+
+// Decorative translucent circle, top-right of the banner.
+.bannerDeco {
+  position: absolute;
+  top: -3rem;
+  right: -2rem;
+  width: 11rem;
+  height: 11rem;
+  border-radius: var(--qtr-r-pill);
+  background: rgba(255, 255, 255, 0.1);
+
+  @include m.short {
+    display: none;
   }
 }
 
 .body {
-  padding: v.$space-6 v.$space-8 v.$space-8;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-6;
+  padding: v.$space-8;
 
   @include m.mobile {
     padding: v.$space-5;
+  }
+}
+
+.instructions {
+  padding: v.$space-6;
+  background: v.$cream-bg;
+  border-radius: var(--qtr-r-md);
+
+  @include m.short {
+    padding: v.$space-3;
   }
 }
 
@@ -88,15 +130,17 @@
 
 .instructionsBody {
   margin: 0 0 v.$space-6;
-  font-size: v.$text-sm;
+  font-size: v.$text-lg;
   color: v.$g700;
   line-height: v.$lh-relaxed;
 }
 
 .startBtn {
   @include m.focus-ring;
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   gap: v.$space-2;
   padding: v.$space-3 v.$space-5;
   border: none;
@@ -104,7 +148,7 @@
   background: var(--qtr-primary);
   color: v.$white;
   font-weight: v.$fw-semibold;
-  font-size: v.$text-sm;
+  font-size: v.$text-lg;
   cursor: pointer;
   transition: background v.$dur-fast v.$ease-out;
 

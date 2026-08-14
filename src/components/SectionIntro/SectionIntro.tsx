@@ -27,6 +27,7 @@ export function SectionIntro({ section, sectionIndex, onBegin }: SectionIntroPro
             <p className={styles.eyebrow}>{name}</p>
             <h1 className={styles.title}>{questionLabel}</h1>
           </div>
+          <span className={styles.bannerDeco} aria-hidden="true" />
         </div>
         <div className={styles.body}>
           <div className={styles.instructions}>

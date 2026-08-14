@@ -38,7 +38,8 @@ import {
 import type { NavigationTarget } from '@/services/navigation-service';
 import type { FlattenedSection } from '@/utils/test-xml-parser';
 import type { ItemSummaryEntry, LegacyAttemptState, NavEvent, PlayerEvent, RunnerConfig, TestItem } from '@/types';
-import type { QtiAssessmentItemPlayerElement, QtiCatalogRequestEventDetail, QtiDiagnosticsEventDetail, QtiEndAttemptEventDetail, QtiValidationEventDetail } from '@/types/qti-player-element';
+import type { QtiAssessmentItemPlayerHandle } from '@longsightgroup/qti3-player-react';
+import type { QtiCatalogRequestEventDetail, QtiDiagnosticsEventDetail, QtiEndAttemptEventDetail, QtiValidationEventDetail } from '@/types/qti-player-element';
 
 const DEFAULT_PCI_CONTEXT = { renderer2p0: '/assets/pci/pci.html' };
 
@@ -59,7 +60,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   const { state, ...actions } = useQtiRunner();
   const { onPlayerEvent, onNavEvent } = options;
 
-  const itemPlayerRef = useRef<QtiAssessmentItemPlayerElement>(null);
+  const itemPlayerRef = useRef<QtiAssessmentItemPlayerHandle>(null);
   const TC = useRef(new TestControllerUtilities()).current;
   const contentLoaderRef = useRef<ContentLoader | null>(null);
   const sessionControlRef = useRef<SessionControlFactory | null>(null);
@@ -334,7 +335,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
    * this just finds the target element and delegates.
    */
   function mountDockedStimulus(stim: ResolvedStimulus) {
-    const root = itemPlayerRef.current;
+    const root = itemPlayerRef.current?.element ?? null;
     const dockingElement = findDockingElement(root, stim.identifier);
     if (!dockingElement) {
       console.warn(`[useQtiRunnerOrchestration] Docking div for stimulus "${stim.identifier}" not found in rendered item`);
@@ -556,27 +557,27 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     }
   }
 
-  function handleEndAttemptCompleted(event: CustomEvent<QtiEndAttemptEventDetail>) {
-    evaluateResults(toEvaluateResultsData(event));
+  function handleEndAttemptCompleted(detail: QtiEndAttemptEventDetail) {
+    evaluateResults(toEvaluateResultsData(detail));
   }
 
-  function handleValidationEvent(event: CustomEvent<QtiValidationEventDetail>) {
+  function handleValidationEvent(detail: QtiValidationEventDetail) {
     const target = pendingAttemptTargetRef.current;
     pendingAttemptTargetRef.current = null;
     const navigationDirection = target === 'navigatePrevItem' ? 'prev' : 'next';
     actions.setButtonDisabled(navigationDirection, false);
-    actions.setToast({ type: 'error', message: event.detail.validationMessages[0]?.message || 'Unable to continue.' });
+    actions.setToast({ type: 'error', message: detail.validationMessages[0]?.message || 'Unable to continue.' });
   }
 
-  function handleSuspendAttemptCompleted(event: CustomEvent<QtiEndAttemptEventDetail>) {
-    evaluateResults(toEvaluateResultsData(event));
+  function handleSuspendAttemptCompleted(detail: QtiEndAttemptEventDetail) {
+    evaluateResults(toEvaluateResultsData(detail));
   }
 
-  function toEvaluateResultsData(event: CustomEvent<QtiEndAttemptEventDetail>) {
+  function toEvaluateResultsData(detail: QtiEndAttemptEventDetail) {
     const item = TC.getItemAtIndex(state.currentItem);
     const target = pendingAttemptTargetRef.current;
     pendingAttemptTargetRef.current = null;
-    return { target, state: LongsightPlayerAdapter.toLegacyState(event.detail.state, item.guid) };
+    return { target, state: LongsightPlayerAdapter.toLegacyState(detail.state, item.guid) };
   }
 
   function evaluateResults(data: { target: NavigationTarget; state: LegacyAttemptState }) {
@@ -647,8 +648,8 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
 
   // ── Item-player event handlers ──────────────────────────────────────────
 
-  function displayItemAlertEvent(event: CustomEvent<QtiDiagnosticsEventDetail>) {
-    const diagnostic = event.detail.diagnostics[0];
+  function displayItemAlertEvent(detail: QtiDiagnosticsEventDetail) {
+    const diagnostic = detail.diagnostics[0];
     if (!diagnostic) return;
     const toast: Toast = { type: mapSeverityToToastType(diagnostic.severity), message: diagnostic.message };
     actions.setToast(toast);
@@ -659,8 +660,8 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     return (['success', 'error', 'warning', 'info'] as const).includes(severity as Toast['type']) ? (severity as Toast['type']) : 'info';
   }
 
-  function handleItemCatalogEvent(event: CustomEvent<QtiCatalogRequestEventDetail>) {
-    onPlayerEvent?.({ type: 'catalog', ...event.detail });
+  function handleItemCatalogEvent(detail: QtiCatalogRequestEventDetail) {
+    onPlayerEvent?.({ type: 'catalog', ...detail });
   }
 
   function handleItemReady() {

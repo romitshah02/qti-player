@@ -1,3 +1,4 @@
+import type { QtiPlayerLoadOptions } from '@longsightgroup/qti3-player';
 import type { LegacyAttemptState, QtiAttemptStateV1, QtiVariable, SessionControl } from '@/types';
 
 /**
@@ -29,7 +30,7 @@ export interface LoadOptions {
   sessionControl?: { validateResponses?: boolean; showFeedback?: boolean };
 }
 
-export function toLoadOptions(configuration: Configuration): LoadOptions {
+export function toLoadOptions(configuration: Configuration): QtiPlayerLoadOptions {
   const options: LoadOptions = { status: STATUS_MAP[configuration.status] || configuration.status };
 
   if (configuration.state) options.state = toEngineState(configuration.state);
@@ -41,7 +42,7 @@ export function toLoadOptions(configuration: Configuration): LoadOptions {
     };
   }
 
-  return options;
+  return options as QtiPlayerLoadOptions;
 }
 
 export function toLegacyState(qtiAttemptState: QtiAttemptStateV1, guid?: string): LegacyAttemptState {

@@ -75,6 +75,7 @@
   @include m.mobile {
     padding: v.$space-5;
     flex-direction: column;
+    align-items: stretch;
   }
 
   @include m.short {

@@ -3,30 +3,29 @@ import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { QtiRunnerProvider } from './QtiRunnerContext';
 import { useQtiRunnerOrchestration } from './useQtiRunnerOrchestration';
-import type { QtiAssessmentItemPlayerElement, QtiEndAttemptEventDetail } from '@/types/qti-player-element';
+import type { QtiAssessmentItemPlayerHandle } from '@longsightgroup/qti3-player-react';
+import type { QtiEndAttemptEventDetail } from '@/types/qti-player-element';
 import type { RunnerConfig } from '@/types';
 
 const wrapper = ({ children }: { children: ReactNode }) => <QtiRunnerProvider>{children}</QtiRunnerProvider>;
 
-function mockItemPlayer(): QtiAssessmentItemPlayerElement {
+function mockItemPlayer(): QtiAssessmentItemPlayerHandle {
   return {
     loadXml: vi.fn(async () => {}),
     endAttempt: vi.fn(),
     suspend: vi.fn(),
     reset: vi.fn(),
-  } as unknown as QtiAssessmentItemPlayerElement;
+  } as unknown as QtiAssessmentItemPlayerHandle;
 }
 
 function itemXml(identifier: string, adaptive = false) {
   return `<qti-assessment-item identifier="${identifier}"${adaptive ? ' adaptive="true"' : ''}><qti-item-body><qti-choice-interaction response-identifier="RESPONSE"/></qti-item-body></qti-assessment-item>`;
 }
 
-function endAttemptEvent(outcomes: Record<string, unknown>, itemIdentifier: string): CustomEvent<QtiEndAttemptEventDetail> {
+function endAttemptEvent(outcomes: Record<string, unknown>, itemIdentifier: string): QtiEndAttemptEventDetail {
   return {
-    detail: {
-      state: { schema: 'qti3.attempt-state.v1', itemIdentifier, status: 'closed', responses: {}, outcomes, validationMessages: [] },
-    },
-  } as unknown as CustomEvent<QtiEndAttemptEventDetail>;
+    state: { schema: 'qti3.attempt-state.v1', itemIdentifier, status: 'closed', responses: {}, outcomes, validationMessages: [] },
+  } as unknown as QtiEndAttemptEventDetail;
 }
 
 const TWO_ITEM_CONFIG: RunnerConfig = {
