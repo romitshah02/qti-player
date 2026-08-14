@@ -23,11 +23,7 @@ npm install
 ```bash
 npm run dev
 ```
-
-Opens the dev harness ([src/App.tsx](src/App.tsx)), which loads config one of two ways:
-
-- No query string — [src/dev/sample-config.ts](src/dev/sample-config.ts), a fixture built from [src/dev/sample-items.ts](src/dev/sample-items.ts)
-- `?identifier=<id>` — fetches real content from `/content/v4/read/<id>` and resolves it into a `RunnerConfig` (see [src/dev/resolve-config.ts](src/dev/resolve-config.ts))
+Opens the dev harness ([src/App.tsx](src/App.tsx))
 
 The dev harness is not part of the web-component build; it exists to run the
 runner standalone while developing.
