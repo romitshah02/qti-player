@@ -181,4 +181,25 @@ describe('useQtiRunnerOrchestration', () => {
     expect(result.current.attemptsRemaining).toBe(0);
     expect(player.reset).not.toHaveBeenCalled();
   });
+
+  it('reports timeTakenSeconds once the test ends, and clears it again on restart', async () => {
+    const config: RunnerConfig = { ...TWO_ITEM_CONFIG, sessionControl: { max_attempts: 2 } };
+    const { result } = renderHook(() => useQtiRunnerOrchestration(config), { wrapper });
+    const player = mockItemPlayer();
+    result.current.itemPlayerRef.current = player;
+    await act(async () => result.current.initialize());
+    expect(result.current.timeTakenSeconds).toBeNull();
+
+    await act(async () => result.current.handleNextItem());
+    await act(async () => result.current.handleEndAttemptCompleted(endAttemptEvent({ SCORE: 0 }, 'i1')));
+
+    await act(async () => result.current.handleNextItem());
+    await act(async () => result.current.handleEndAttemptCompleted(endAttemptEvent({ SCORE: 1 }, 'i2')));
+
+    expect(result.current.timeTakenSeconds).not.toBeNull();
+    expect(result.current.timeTakenSeconds).toBeGreaterThanOrEqual(0);
+
+    await act(async () => result.current.handleRestart());
+    expect(result.current.timeTakenSeconds).toBeNull();
+  });
 });

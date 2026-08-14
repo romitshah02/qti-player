@@ -1,4 +1,5 @@
 import type { Section } from '@/types';
+import { formatDuration } from '@/utils/format-duration';
 import styles from './AssessmentIntro.module.scss';
 
 export interface AssessmentIntroProps {
@@ -9,16 +10,6 @@ export interface AssessmentIntroProps {
   maxAttempts?: number;
   onBegin: () => void;
   onSectionSelect: (section: Section) => void;
-}
-
-function formatDuration(seconds: number): string {
-  const totalMinutes = Math.floor(seconds / 60);
-  if (totalMinutes < 60) {
-    return `${totalMinutes}:${String(seconds % 60).padStart(2, '0')}`;
-  }
-  const hours = Math.floor(totalMinutes / 60);
-  const mins = totalMinutes % 60;
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
 }
 
 export function AssessmentIntro({ title, totalQuestions, sections, timeLimitSeconds, maxAttempts, onBegin, onSectionSelect }: AssessmentIntroProps) {

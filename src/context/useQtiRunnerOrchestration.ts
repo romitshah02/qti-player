@@ -35,7 +35,7 @@ import {
   computeTotalScore,
   resolveNavigationOutcome,
 } from '@/services/navigation-service';
-import type { NavigationTarget } from '@/services/navigation-service';
+import type { NavigationTarget, SummaryBreakdown } from '@/services/navigation-service';
 import type { FlattenedSection } from '@/utils/test-xml-parser';
 import type { ItemSummaryEntry, LegacyAttemptState, NavEvent, PlayerEvent, RunnerConfig, TestItem } from '@/types';
 import type { QtiAssessmentItemPlayerHandle } from '@longsightgroup/qti3-player-react';
@@ -69,6 +69,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   const itemSubmissionModeRef = useRef<string | null>(null);
   const pendingAttemptTargetRef = useRef<NavigationTarget>(null);
   const testStartedAtRef = useRef<number | null>(null);
+  const testDurationMsRef = useRef<number | null>(null);
   const itemStartedAtRef = useRef<number | null>(null);
   const shownSectionIntrosRef = useRef<Set<string>>(new Set());
   const showSectionIntroRef = useRef(true);
@@ -227,6 +228,13 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
       index,
       answered: !TC.isItemNullResponse(TC.getItemStateByGuid(item.guid)),
     }));
+  }
+
+  function getBreakdown(): SummaryBreakdown {
+    const items = TC.getItems();
+    if (!items) return { correct: 0, wrong: 0, partial: 0, skipped: 0, score: 0 };
+    const totalScore = computeTotalScore(TC.getItemStates() ?? new Map());
+    return computeSummaryBreakdown(items, TC, totalScore);
   }
 
   function getSectionsWithCounts() {
@@ -535,7 +543,8 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
 
     const itemStates = TC.getItemStates()!;
     const totalScore = computeTotalScore(itemStates);
-    TelemetryService.logAssessmentEnd(state.currentItem, state.maxItems, Date.now() - testStartedAtRef.current!, totalScore);
+    testDurationMsRef.current = Date.now() - testStartedAtRef.current!;
+    TelemetryService.logAssessmentEnd(state.currentItem, state.maxItems, testDurationMsRef.current, totalScore);
     TelemetryService.logSummary(
       computeSummaryBreakdown(TC.getItems()!, TC, totalScore),
       { currentQuestionIndex: state.currentItem, totalQuestions: state.maxItems, starttime: testStartedAtRef.current! },
@@ -545,6 +554,8 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   function handleRestart() {
     if (getAttemptsRemaining() === 0) return;
     testAttemptNumberRef.current += 1;
+    testStartedAtRef.current = Date.now();
+    testDurationMsRef.current = null;
     TC.getItemStates()!.clear();
     shownSectionIntrosRef.current.clear();
     actions.restart();
@@ -552,12 +563,6 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     actions.updateButtonState();
     onNavEvent?.({ type: 'restart', currentItem: 0, maxItems: state.maxItems });
     TelemetryService.logInteraction('restart', 0);
-  }
-
-  function handleNavigateItem(item: ItemSummaryEntry) {
-    switchToItemAndLoad(item.index);
-    actions.setCurrentItem(item.index);
-    actions.updateButtonState();
   }
 
   // ── Attempt completion (endAttempt/suspend round-trip) ──────────────────
@@ -708,6 +713,8 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   return {
     itemPlayerRef,
     summary: getSummary(),
+    breakdown: getBreakdown(),
+    timeTakenSeconds: testDurationMsRef.current !== null ? Math.round(testDurationMsRef.current / 1000) : null,
     sectionsWithCounts: getSectionsWithCounts(),
     currentSectionId: getCurrentSectionId(),
     pendingSection: getPendingSection(),
@@ -735,7 +742,6 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     exitReview,
     confirmSubmit,
     handleRestart,
-    handleNavigateItem,
 
     handleEndAttemptCompleted,
     handleSuspendAttemptCompleted,

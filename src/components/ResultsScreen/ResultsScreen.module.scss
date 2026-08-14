@@ -43,8 +43,6 @@
   }
 }
 
-// 2 buckets (answered/unanswered) — this app only tracks answered vs not,
-// not grading (no correct/incorrect/partial/skipped breakdown).
 .scoreboard {
   max-width: 580px;
   margin: 0 auto v.$space-8;
@@ -111,42 +109,35 @@
   color: v.$gray-400;
 }
 
-.stat.answered .statValue {
+.stat.correct .statValue {
   color: v.$success;
 }
 
-.stat.unanswered .statValue {
+.stat.incorrect .statValue {
+  color: v.$danger;
+}
+
+.stat.partial .statValue {
+  color: v.$warning;
+}
+
+.stat.skipped .statValue {
   color: v.$gray-400;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(2.5rem, 1fr));
-  gap: v.$space-2;
-  list-style: none;
-  margin: 0 0 v.$space-6;
-  padding: 0;
+.score,
+.timeTaken {
+  margin: v.$space-4 0 0;
+  font-size: v.$text-sm;
+  color: v.$g700;
+
+  strong {
+    color: v.$g900;
+  }
 }
 
-.chipBtn {
-  @include m.flex-center;
-  @include m.focus-ring;
-  width: 100%;
-  aspect-ratio: 1;
-  border: none;
-  border-radius: var(--qtr-r-sm);
-  font-weight: v.$fw-medium;
-  cursor: pointer;
-}
-
-.chip.answered .chipBtn {
-  background: v.$success-bg;
-  color: v.$success;
-}
-
-.chip.unanswered .chipBtn {
-  background: v.$warning-bg;
-  color: v.$warning;
+.timeTaken {
+  margin-top: v.$space-1;
 }
 
 .actions {

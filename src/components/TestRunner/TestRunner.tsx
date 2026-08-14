@@ -206,9 +206,9 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
 
           {state.currentPanel === 'results' && (
             <ResultsScreen
-              summary={runner.summary}
+              breakdown={runner.breakdown}
+              timeTakenSeconds={runner.timeTakenSeconds}
               attemptsRemaining={runner.attemptsRemaining}
-              onNavigateItem={runner.handleNavigateItem}
               onRestart={runner.handleRestart}
             />
           )}
