@@ -86,7 +86,6 @@ export default defineConfig(({ command }) => {
             fileName: () => 'qti3-test-runner.js',
             formats: ['iife'],
           },
-          minify: 'terser',
           cssCodeSplit: false,
         }
       : {

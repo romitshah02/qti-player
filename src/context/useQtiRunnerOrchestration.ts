@@ -41,8 +41,6 @@ import type { ItemSummaryEntry, LegacyAttemptState, NavEvent, PlayerEvent, Runne
 import type { QtiAssessmentItemPlayerHandle } from '@longsightgroup/qti3-player-react';
 import type { QtiCatalogRequestEventDetail, QtiDiagnosticsEventDetail, QtiEndAttemptEventDetail, QtiValidationEventDetail } from '@/types/qti-player-element';
 
-const DEFAULT_PCI_CONTEXT = { renderer2p0: '/assets/pci/pci.html' };
-
 /** A mounted "Vue island" stimulus-player instance — kept opaque here, its
  * exact shape only matters to StimulusDocking's own Vue.extend() call
  * (Phase 4). */
@@ -64,7 +62,6 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   const TC = useRef(new TestControllerUtilities()).current;
   const contentLoaderRef = useRef<ContentLoader | null>(null);
   const sessionControlRef = useRef<SessionControlFactory | null>(null);
-  const pciContextRef = useRef<unknown>(DEFAULT_PCI_CONTEXT);
   const testSubmissionModeRef = useRef('simultaneous');
   const itemSubmissionModeRef = useRef<string | null>(null);
   const pendingAttemptTargetRef = useRef<NavigationTarget>(null);
@@ -126,7 +123,6 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     sessionControlRef.current = sessionControl;
 
     testSubmissionModeRef.current = config.submissionMode || 'simultaneous';
-    if (config.pciContext) pciContextRef.current = config.pciContext;
 
     contentLoaderRef.current = new ContentLoader(config.previewUrl!);
     stimulusListRef.current = config.stimulusList || [];

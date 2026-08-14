@@ -29,6 +29,10 @@ qti-assessment-item-player {
   --choice-control-hover-bc: var(--qtr-primary);
 }
 
+.qti-item-panel .qti3-choice-list {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .qti-item-panel .qti3-choice-option {
   padding: v.$space-3;
   min-height: 2.75rem;

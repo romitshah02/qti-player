@@ -113,7 +113,6 @@ export interface RunnerConfig {
   sections?: ConfigSection[];
   submissionMode?: string;
   sessionControl?: Partial<SessionControl>;
-  pciContext?: unknown;
   previewUrl?: string;
   stimulusList?: StimulusDescriptor[];
   showSectionIntro?: boolean;

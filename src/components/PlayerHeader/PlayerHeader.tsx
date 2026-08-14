@@ -9,20 +9,12 @@ export interface PlayerHeaderProps {
   currentItem: number;
   maxItems: number;
   reviewEnabled?: boolean;
-  /** Seconds remaining; null = no timer. */
-  timeRemaining?: number | null;
   showMenuToggle?: boolean;
   onMenuToggle?: () => void;
   onBrandClick?: () => void;
   onSectionJump?: (section: Section) => void;
   onReview: () => void;
   onSubmit: () => void;
-}
-
-function formatMmSs(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 export function PlayerHeader({
@@ -32,7 +24,6 @@ export function PlayerHeader({
   currentItem,
   maxItems,
   reviewEnabled = false,
-  timeRemaining = null,
   showMenuToggle = false,
   onMenuToggle,
   onBrandClick,
@@ -42,7 +33,6 @@ export function PlayerHeader({
 }: PlayerHeaderProps) {
   const [showLegend, setShowLegend] = useState(false);
   const brandInitial = (brandName || 'Q').charAt(0).toUpperCase();
-  const isTimeLow = timeRemaining !== null && timeRemaining <= 60;
   const currentSectionIndex = sections.findIndex((s) => s.identifier === currentSectionId);
 
   function stepStatusClass(index: number): string {
@@ -81,12 +71,6 @@ export function PlayerHeader({
       </div>
 
       <div className={styles.right}>
-        {timeRemaining !== null && (
-          <span className={`${styles.timer} ${isTimeLow ? styles.timerLow : ''}`.trim()}>
-            {formatMmSs(timeRemaining)}
-          </span>
-        )}
-
         {sections.length > 0 && (
           <div className={styles.helpWrap}>
             <button

@@ -117,7 +117,6 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
                 onPrevious={runner.handlePrevItem}
                 onNext={runner.handleNextItem}
                 onFinish={runner.handleGotoEnd}
-                onExit={() => {}}
               />
               <div className={styles.qtiContent}>
                 <div className={`${styles.qtiCard} qti-card`}>
@@ -181,7 +180,6 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
                 exitLabel="Back to assessment"
                 onPrevious={runner.reviewPrevItem}
                 onNext={runner.reviewNextItem}
-                onFinish={() => {}}
                 onExit={runner.exitReview}
               />
               <div className={styles.qtiContent}>
