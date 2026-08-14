@@ -1,7 +1,7 @@
 {
-  "name": "qti3-test-runner-react",
+  "name": "test-qti-player-web-component-react",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.0.1",
   "type": "module",
   "description": "QTI 3 Test Runner Controller (React, web-component packaged)",
   "engines": {
