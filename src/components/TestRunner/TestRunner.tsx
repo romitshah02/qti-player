@@ -84,6 +84,12 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
           </div>
         )}
 
+        {state.currentPanel === 'review' && (
+          <div className={styles.sidebarRail}>
+            <Sidebar sections={runner.sectionsWithCounts} currentSectionId={runner.currentReviewSectionId} onSectionJump={runner.onSectionJump} />
+          </div>
+        )}
+
         <div className={styles.main}>
           {state.currentPanel === 'assessment-intro' && (
             <AssessmentIntro

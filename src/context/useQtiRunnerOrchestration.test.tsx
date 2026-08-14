@@ -53,6 +53,22 @@ const TWO_SECTION_CONFIG: RunnerConfig = {
 };
 
 describe('useQtiRunnerOrchestration', () => {
+  it('onSectionJump during review loads the target section\'s item into review (read-only), not the live item panel', async () => {
+    const { result } = renderHook(() => useQtiRunnerOrchestration(TWO_SECTION_CONFIG), { wrapper });
+    const player = mockItemPlayer();
+    result.current.itemPlayerRef.current = player;
+    await act(async () => result.current.initialize());
+
+    result.current.handleReviewClick();
+    await act(async () => result.current.handleSuspendAttemptCompleted(endAttemptEvent({}, 'i1')));
+    expect(player.loadXml).toHaveBeenLastCalledWith(itemXml('i1'), expect.anything());
+    expect(result.current.currentReviewSectionId).toBe('sec1');
+
+    await act(async () => result.current.onSectionJump(result.current.sectionsWithCounts[1]));
+    expect(player.loadXml).toHaveBeenLastCalledWith(itemXml('i2'), expect.anything());
+    expect(result.current.currentReviewSectionId).toBe('sec2');
+  });
+
   it('going back to the assessment intro then beginning a different section updates currentItem, not just the loaded item', async () => {
     const { result } = renderHook(() => useQtiRunnerOrchestration(TWO_SECTION_CONFIG), { wrapper });
     const player = mockItemPlayer();

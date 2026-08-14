@@ -210,6 +210,13 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     return section ? (section.identifier as string) : null;
   }
 
+  function getReviewSectionId(): string | null {
+    if (!TC.getItems() || state.reviewIndex < 0) return null;
+    const currentIdentifier = TC.getItemAtIndex(state.reviewIndex)?.identifier;
+    const section = state.sections.find((s) => s.itemIdentifiers.includes(currentIdentifier));
+    return section ? (section.identifier as string) : null;
+  }
+
   function getPendingSection(): FlattenedSection | null {
     return state.pendingItemIndex !== null ? getSectionForIndex(state.pendingItemIndex) : null;
   }
@@ -428,6 +435,12 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
       switchToItemAndLoad(index);
       actions.setCurrentItem(index);
       actions.updateButtonState();
+      return;
+    }
+    if (state.currentPanel === 'review') {
+      if (index === state.reviewIndex) return;
+      actions.setReviewIndex(index);
+      void loadReviewItemAtIndex(index);
       return;
     }
     if (index === state.currentItem) return;
@@ -717,6 +730,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     timeTakenSeconds: testDurationMsRef.current !== null ? Math.round(testDurationMsRef.current / 1000) : null,
     sectionsWithCounts: getSectionsWithCounts(),
     currentSectionId: getCurrentSectionId(),
+    currentReviewSectionId: getReviewSectionId(),
     pendingSection: getPendingSection(),
     pendingSectionIndex: getPendingSectionIndex(),
     answeredCount: getSummary().filter((item) => item.answered).length,
