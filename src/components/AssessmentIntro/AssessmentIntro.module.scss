@@ -1,0 +1,245 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+.assessmentIntro {
+  flex: 1;
+  padding: v.$space-10 v.$space-6;
+  background: v.$cream-bg;
+  overflow-y: auto;
+
+  @include m.mobile {
+    padding: v.$space-6 v.$space-5;
+  }
+
+  @include m.short {
+    padding: v.$space-4;
+  }
+}
+
+.content {
+  width: 100%;
+  max-width: 920px;
+  margin-inline: auto;
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$space-4;
+  margin: 0 0 v.$space-8;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.75rem, 4vw, v.$text-2xl);
+  font-weight: v.$fw-bold;
+  color: v.$g900;
+}
+
+.decoCards {
+  position: relative;
+  flex-shrink: 0;
+  width: 4.5rem;
+  height: 3.5rem;
+
+  @include m.mobile {
+    display: none;
+  }
+}
+
+.decoCard {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--qtr-r-sm);
+}
+
+.decoWave {
+  background: v.$wave;
+  transform: translate(-1.5rem, 0.5rem) rotate(-8deg);
+}
+
+.decoGinger {
+  background: v.$ginger;
+  transform: translate(-0.5rem, 0.25rem) rotate(6deg);
+}
+
+.decoPrimary {
+  background: var(--qtr-primary);
+  transform: rotate(-4deg);
+}
+
+.stats {
+  display: flex;
+  gap: 1px;
+  margin: 0 0 v.$space-8;
+  background: v.$g100;
+  border-radius: var(--qtr-r-md);
+  box-shadow: v.$shadow-card;
+  overflow: hidden;
+
+  @include m.mobile {
+    flex-wrap: wrap;
+  }
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  flex: 1 1 0;
+  padding: v.$space-4 v.$space-5;
+  background: v.$white;
+}
+
+.statIcon {
+  @include m.flex-center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--qtr-r-sm);
+  background: v.$cream-bg;
+  color: var(--qtr-primary);
+}
+
+.statValue {
+  margin: 0;
+  font-size: v.$text-xl;
+  font-weight: v.$fw-bold;
+  line-height: 1.2;
+  color: v.$g900;
+}
+
+.statLabel {
+  margin: 0 0 v.$space-1;
+  font-size: v.$text-xs;
+  font-weight: v.$fw-medium;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: v.$gray-400;
+}
+
+.sectionsHeading {
+  margin: 0 0 v.$space-1;
+  font-size: v.$text-xl;
+  font-weight: v.$fw-bold;
+  color: v.$g900;
+}
+
+.sectionsSubtitle {
+  margin: 0 0 v.$space-5;
+  font-size: v.$text-base;
+  color: v.$g500;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: v.$space-4;
+  margin: 0 0 v.$space-8;
+
+  @include m.tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include m.mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sectionCard {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+  width: 100%;
+  padding: v.$space-6;
+  background: v.$white;
+  border: 1.5px solid transparent;
+  border-radius: var(--qtr-r-md);
+  box-shadow: v.$shadow-card;
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color v.$dur-fast v.$ease-out, transform v.$dur-fast v.$ease-out, box-shadow v.$dur-fast v.$ease-out;
+
+  &:hover {
+    box-shadow: v.$shadow-md;
+    transform: translateY(-2px);
+  }
+
+  @include m.focus-ring;
+}
+
+
+
+.sectionCardHeader {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+}
+
+.badge {
+  @include m.flex-center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--qtr-r-pill);
+  background: var(--qtr-primary);
+  color: v.$white;
+  font-weight: v.$fw-bold;
+  font-size: v.$text-base;
+}
+
+.sectionName {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: v.$text-base;
+  font-weight: v.$fw-semibold;
+  color: v.$g900;
+}
+
+.chevron {
+  @include m.flex-center;
+  flex-shrink: 0;
+  color: v.$gray-400;
+}
+
+.sectionCount {
+  margin: 0;
+  font-size: v.$text-sm;
+  color: v.$g500;
+}
+
+.sectionBlurb {
+  margin: 0;
+  font-size: v.$text-sm;
+  color: v.$g700;
+  line-height: v.$lh-relaxed;
+}
+
+.startBtn {
+  @include m.focus-ring;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: v.$space-2;
+  padding: v.$space-3 v.$space-5;
+  border: none;
+  border-radius: var(--qtr-r-sm);
+  background: var(--qtr-primary);
+  color: v.$white;
+  font-weight: v.$fw-semibold;
+  font-size: v.$text-lg;
+  cursor: pointer;
+  transition: background v.$dur-fast v.$ease-out;
+
+  &:hover {
+    background: var(--qtr-primary-hover);
+  }
+}
