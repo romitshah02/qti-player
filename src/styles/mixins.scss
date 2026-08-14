@@ -22,7 +22,7 @@
 }
 
 @mixin tablet {
-  @container qti-runner (max-width: #{v.$bp-tablet}) {
+  @container qti-runner (max-width: #{v.$bp-tablet - 1px}) {
     @content;
   }
 }
@@ -35,7 +35,16 @@
   }
 }
 
-@mixin focus-ring($color: v.$ginger) {
+@mixin compact {
+  @include mobile {
+    @content;
+  }
+  @media (max-height: #{v.$bp-short-height}) and (max-width: #{v.$bp-short-width}) {
+    @content;
+  }
+}
+
+@mixin focus-ring($color: var(--qtr-primary)) {
   &:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px #{v.$white}, 0 0 0 4px $color;
