@@ -8,6 +8,7 @@ import { PlayerHeader } from '../PlayerHeader/PlayerHeader';
 import { Sidebar } from '../Sidebar/Sidebar';
 import { MobileSectionsDrawer } from '../MobileSectionsDrawer/MobileSectionsDrawer';
 import { QuestionNavBar } from '../QuestionNavBar/QuestionNavBar';
+import { AssessmentIntro } from '../AssessmentIntro/AssessmentIntro';
 import { SectionIntro } from '../SectionIntro/SectionIntro';
 import { SubmitModal } from '../SubmitModal/SubmitModal';
 import { Toast } from '../Toast/Toast';
@@ -59,7 +60,7 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
 
   return (
     <div className={styles.appShell}>
-      {state.currentPanel !== 'results' && (
+      {state.currentPanel !== 'results' && state.currentPanel !== 'assessment-intro' && (
         <PlayerHeader
           brandName={state.testTitle}
           sections={runner.sectionsWithCounts}
@@ -69,6 +70,7 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
           reviewEnabled={runner.isLastItem && state.currentPanel === 'item'}
           showMenuToggle
           onMenuToggle={() => actions.setDrawerOpen(true)}
+          onBrandClick={runner.handleGoToAssessmentIntro}
           onSectionJump={runner.onSectionJump}
           onReview={runner.handleReviewClick}
           onSubmit={runner.handleSubmitClick}
@@ -83,6 +85,18 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
         )}
 
         <div className={styles.main}>
+          {state.currentPanel === 'assessment-intro' && (
+            <AssessmentIntro
+              title={state.testTitle}
+              totalQuestions={state.maxItems}
+              sections={runner.sectionsWithCounts}
+              timeLimitSeconds={config.timeLimitSeconds}
+              maxAttempts={config.sessionControl?.max_attempts}
+              onBegin={runner.handleBeginAssessment}
+              onSectionSelect={runner.handleBeginAssessmentAtSection}
+            />
+          )}
+
           {state.currentPanel === 'section-intro' && runner.pendingSection && (
             <SectionIntro section={runner.pendingSection} sectionIndex={runner.pendingSectionIndex} onBegin={runner.handleBeginSection} />
           )}
@@ -191,7 +205,12 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
           )}
 
           {state.currentPanel === 'results' && (
-            <ResultsScreen summary={runner.summary} onNavigateItem={runner.handleNavigateItem} onRestart={runner.handleRestart} />
+            <ResultsScreen
+              summary={runner.summary}
+              attemptsRemaining={runner.attemptsRemaining}
+              onNavigateItem={runner.handleNavigateItem}
+              onRestart={runner.handleRestart}
+            />
           )}
         </div>
 

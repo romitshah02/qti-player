@@ -6,6 +6,7 @@ import type { RunnerConfig } from '@/types';
 const CONFIG: RunnerConfig = {
   title: 'Smoke Test Quiz',
   showSectionIntro: false,
+  showAssessmentIntro: false,
   items: [
     {
       identifier: 'i1',

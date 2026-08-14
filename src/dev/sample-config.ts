@@ -8,6 +8,7 @@ const sampleConfig: RunnerConfig = {
   title: 'Sample Test',
   submissionMode: 'simultaneous',
   sessionControl: { show_feedback: true },
+  timeLimitSeconds: 900,
   context: { uid: 'dev-user', sid: 'dev-session', channel: 'dev', host: '' },
   stimulusList: [{ identifier: 'sample-stimulus', href: '/qti-assets/sample-stimulus.xml' }],
   items: sampleItems,

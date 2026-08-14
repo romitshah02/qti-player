@@ -3,11 +3,13 @@ import styles from './ResultsScreen.module.scss';
 
 export interface ResultsScreenProps {
   summary: ItemSummaryEntry[];
+  attemptsRemaining?: number | null;
   onNavigateItem: (item: ItemSummaryEntry) => void;
   onRestart: () => void;
 }
 
-export function ResultsScreen({ summary, onNavigateItem, onRestart }: ResultsScreenProps) {
+export function ResultsScreen({ summary, attemptsRemaining = null, onNavigateItem, onRestart }: ResultsScreenProps) {
+  const canRetake = attemptsRemaining === null || attemptsRemaining > 0;
   const answeredCount = summary.filter((item) => item.answered).length;
 
   return (
@@ -43,11 +45,13 @@ export function ResultsScreen({ summary, onNavigateItem, onRestart }: ResultsScr
           ))}
         </ol>
 
-        <div className={styles.actions}>
-          <button type="button" className={styles.retakeBtn} onClick={onRestart}>
-            Retake
-          </button>
-        </div>
+        {canRetake && (
+          <div className={styles.actions}>
+            <button type="button" className={styles.retakeBtn} onClick={onRestart}>
+              Retake{attemptsRemaining !== null ? ` (${attemptsRemaining} left)` : ''}
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

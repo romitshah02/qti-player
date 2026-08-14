@@ -27,4 +27,14 @@ describe('ResultsScreen', () => {
     fireEvent.click(screen.getByText('Retake'));
     expect(onRestart).toHaveBeenCalledTimes(1);
   });
+
+  it('shows attempts left next to Retake when a finite count is given', () => {
+    render(<ResultsScreen summary={SUMMARY} attemptsRemaining={2} onNavigateItem={vi.fn()} onRestart={vi.fn()} />);
+    expect(screen.getByText('Retake (2 left)')).toBeInTheDocument();
+  });
+
+  it('hides Retake once attemptsRemaining is exhausted', () => {
+    render(<ResultsScreen summary={SUMMARY} attemptsRemaining={0} onNavigateItem={vi.fn()} onRestart={vi.fn()} />);
+    expect(screen.queryByText(/Retake/)).not.toBeInTheDocument();
+  });
 });

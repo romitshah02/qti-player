@@ -1,6 +1,13 @@
+export interface TimeLimits {
+  /** Seconds, parsed from the ISO 8601 duration in max-time (e.g. "PT45M"). Null if absent/unparseable. */
+  maxSeconds: number | null;
+  allowLateSubmission: boolean;
+}
+
 interface ItemRef {
   identifier: string | null;
   href: string | null;
+  timeLimits: TimeLimits | null;
 }
 
 interface ParsedSection {
@@ -8,17 +15,51 @@ interface ParsedSection {
   title: string | null;
   itemRefs: ItemRef[];
   rubricBlockText: string;
+  timeLimits: TimeLimits | null;
 }
 
 interface ParsedTestPart {
   identifier: string | null;
   submissionMode: string;
   sections: ParsedSection[];
+  timeLimits: TimeLimits | null;
+  maxAttempts: number | null;
 }
 
 export interface ParsedTest {
   title: string;
   parts: ParsedTestPart[];
+  timeLimits: TimeLimits | null;
+}
+
+/** Parses an ISO 8601 time-only duration (e.g. "PT45M", "PT1H30M", "PT90S") into seconds. */
+export function parseIso8601Duration(value: string): number | null {
+  const match = /^PT(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?$/i.exec(value.trim());
+  if (!match || (!match[1] && !match[2] && !match[3])) return null;
+  const hours = parseFloat(match[1] || '0');
+  const minutes = parseFloat(match[2] || '0');
+  const seconds = parseFloat(match[3] || '0');
+  return Math.round(hours * 3600 + minutes * 60 + seconds);
+}
+
+/** Reads a direct <qti-time-limits> child, if present, at any of the four structural levels. */
+function parseTimeLimits(el: Element): TimeLimits | null {
+  const timeLimitsEl = Array.from(el.children).find((child) => child.tagName === 'qti-time-limits');
+  if (!timeLimitsEl) return null;
+  const maxTime = timeLimitsEl.getAttribute('max-time');
+  return {
+    maxSeconds: maxTime ? parseIso8601Duration(maxTime) : null,
+    allowLateSubmission: timeLimitsEl.getAttribute('allow-late-submission') === 'true',
+  };
+}
+
+function parseMaxAttempts(el: Element): number | null {
+  const sessionControlEl = Array.from(el.children).find((child) => child.tagName === 'qti-item-session-control');
+  if (!sessionControlEl) return null;
+  const maxAttempts = sessionControlEl.getAttribute('max-attempts');
+  if (maxAttempts === null) return null;
+  const parsed = parseInt(maxAttempts, 10);
+  return Number.isNaN(parsed) ? null : parsed;
 }
 
 export interface FlattenedSection {
@@ -32,6 +73,7 @@ function parseItemRef(el: Element): ItemRef {
   return {
     identifier: el.getAttribute('identifier'),
     href: el.getAttribute('href'),
+    timeLimits: parseTimeLimits(el),
   };
 }
 
@@ -50,6 +92,7 @@ function parseSection(el: Element): ParsedSection {
     title: el.getAttribute('title') || el.getAttribute('identifier'),
     itemRefs,
     rubricBlockText: rubricBlockText.join(' '),
+    timeLimits: parseTimeLimits(el),
   };
 }
 
@@ -62,6 +105,8 @@ function parseTestPart(el: Element): ParsedTestPart {
     identifier: el.getAttribute('identifier'),
     submissionMode: el.getAttribute('submission-mode') || 'individual',
     sections,
+    timeLimits: parseTimeLimits(el),
+    maxAttempts: parseMaxAttempts(el),
   };
 }
 
@@ -78,7 +123,7 @@ export function parseAssessmentTest(xmlText: string): ParsedTest {
     .filter((child) => child.tagName === 'qti-test-part')
     .map(parseTestPart);
 
-  return { title: testEl.getAttribute('title') || '', parts };
+  return { title: testEl.getAttribute('title') || '', parts, timeLimits: parseTimeLimits(testEl) };
 }
 
 /**

@@ -17,8 +17,26 @@ interface ContentReadBody {
       stimulusList?: { identifier: string; href: string }[];
       itemList?: ContentReadItem[];
       testList?: { href: string }[];
+      timeLimits?: { min?: number; max?: number };
+      maxAttempts?: number;
     };
   };
+}
+
+function writeBackDerivedMetadata(identifier: string, timeLimitSeconds: number | null | undefined, maxAttempts: number | null | undefined): void {
+  if (timeLimitSeconds == null && maxAttempts == null) return;
+  fetch(`/content/v4/system/update/${identifier}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      request: {
+        content: {
+          ...(timeLimitSeconds != null && { timeLimits: { min: 0, max: timeLimitSeconds } }),
+          ...(maxAttempts != null && { maxAttempts }),
+        },
+      },
+    }),
+  }).catch((error) => console.warn(`[resolveConfig] metadata write-back failed for "${identifier}"`, error));
 }
 
 /**
@@ -68,13 +86,21 @@ export async function resolveConfig(): Promise<RunnerConfig> {
   const rawTestXml = await contentLoader.fetchText(testEntry.href);
   const parsedTest = parseAssessmentTest(rawTestXml);
   const itemRefs = flattenItemRefs(parsedTest);
+  const cachedTimeLimitSeconds = content.timeLimits?.max;
+  const cachedMaxAttempts = content.maxAttempts;
+  const timeLimitSeconds = cachedTimeLimitSeconds ?? parsedTest.timeLimits?.maxSeconds ?? undefined;
+  const maxAttempts = cachedMaxAttempts ?? parsedTest.parts[0]?.maxAttempts ?? undefined;
+  if (cachedTimeLimitSeconds == null && cachedMaxAttempts == null) {
+    writeBackDerivedMetadata(identifier, timeLimitSeconds, maxAttempts);
+  }
 
   return {
     title: parsedTest.title || content.name || identifier,
     submissionMode: parsedTest.parts[0]?.submissionMode || 'simultaneous',
     previewUrl: content.previewUrl,
     stimulusList,
-    sessionControl: { show_feedback: true }, // see no-testList branch above
+    timeLimitSeconds,
+    sessionControl: { show_feedback: true, ...(maxAttempts != null && { max_attempts: maxAttempts }) },
     context,
     sections: flattenSections(parsedTest).map((s) => ({
       identifier: s.identifier as string,

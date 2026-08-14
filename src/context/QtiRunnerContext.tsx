@@ -12,7 +12,7 @@ import type { Dispatch, ReactNode } from 'react';
 import type { ResolvedStimulus } from '@/services/content-loader';
 import type { FlattenedSection } from '@/utils/test-xml-parser';
 
-export type Panel = 'item' | 'review' | 'results' | 'section-intro';
+export type Panel = 'item' | 'review' | 'results' | 'section-intro' | 'assessment-intro';
 
 export interface Toast {
   type: 'success' | 'error' | 'warning' | 'info';

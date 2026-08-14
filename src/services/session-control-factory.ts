@@ -21,7 +21,7 @@ export class SessionControlFactory {
       allow_comment: false,
       allow_review: true,
       allow_skipping: true,
-      max_attempts: this.constants.ATTEMPTS_UNLIMITED,
+      max_attempts: 1,
       show_feedback: false,
       show_solution: false,
       time_limits: { ...this.constants.TIME_LIMITS_DEFAULT },
@@ -63,6 +63,10 @@ export class SessionControlFactory {
 
   getValidateResponses(): boolean {
     return this.sc.validate_responses;
+  }
+
+  getMaxAttempts(): number {
+    return this.sc.max_attempts;
   }
 
   setValidateResponses(validate_responses: boolean): void {

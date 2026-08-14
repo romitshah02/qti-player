@@ -72,6 +72,8 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   const itemStartedAtRef = useRef<number | null>(null);
   const shownSectionIntrosRef = useRef<Set<string>>(new Set());
   const showSectionIntroRef = useRef(true);
+  const showAssessmentIntroRef = useRef(true);
+  const testAttemptNumberRef = useRef(1);
   const stimulusListRef = useRef(config.stimulusList || []);
   const stimulusPlayersRef = useRef<Record<string, { loadStimulusFromXml: (xml: string, config: Configuration) => void }>>({});
   const dockedStimulusInstancesRef = useRef<StimulusPlayerInstance[]>([]);
@@ -116,6 +118,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     TC.setItemStates(new Map());
     shownSectionIntrosRef.current = new Set();
     showSectionIntroRef.current = config.showSectionIntro !== false;
+    showAssessmentIntroRef.current = config.showAssessmentIntro !== false;
 
     const sessionControl = new SessionControlFactory();
     sessionControl.setSessionControl(config.sessionControl);
@@ -130,17 +133,40 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     const sections = buildSections(config);
     actions.initialize({ testTitle: config.title || '', maxItems: config.items.length, sections });
 
+    if (showAssessmentIntroRef.current) {
+      actions.setPanel('assessment-intro');
+    } else {
+      testStartedAtRef.current = Date.now();
+      TelemetryService.logAssessmentStart(0);
+      // Deferred via pendingLoadRef, not called directly: `actions.initialize`
+      // above dispatches maxItems/sections, but dispatch doesn't update this
+      // closure's `state` until the next render — loadItemAtIndex reads both
+      // (for its bounds check and shouldShowSectionIntroFor), so calling it
+      // synchronously here would see stale (pre-init) values. The pending-load
+      // effect picks this up after the dispatch actually commits.
+      pendingLoadRef.current = { panel: 'item', index: 0 };
+    }
+    actions.updateButtonState();
+  }
+
+  function handleBeginAssessment(index = 0) {
     testStartedAtRef.current = Date.now();
     TelemetryService.logAssessmentStart(0);
+    TelemetryService.logInteraction('start-assessment', index);
+    switchToItemAndLoad(index);
+    actions.setCurrentItem(index);
+  }
 
-    // Deferred via pendingLoadRef, not called directly: `actions.initialize`
-    // above dispatches maxItems/sections, but dispatch doesn't update this
-    // closure's `state` until the next render — loadItemAtIndex reads both
-    // (for its bounds check and shouldShowSectionIntroFor), so calling it
-    // synchronously here would see stale (pre-init) values. The pending-load
-    // effect picks this up after the dispatch actually commits.
-    pendingLoadRef.current = { panel: 'item', index: 0 };
-    actions.updateButtonState();
+  function handleGoToAssessmentIntro() {
+    actions.setPanel('assessment-intro');
+  }
+
+  function handleBeginAssessmentAtSection(section: FlattenedSection) {
+    const identifier = (section.itemIdentifiers as string[])[0];
+    const items = TC.getItems();
+    const index = items ? items.findIndex((item) => item.identifier === identifier) : -1;
+    if (index < 0) return;
+    handleBeginAssessment(index);
   }
 
   function buildSections(cfg: RunnerConfig): FlattenedSection[] {
@@ -376,6 +402,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     endOrSuspendAttempt('advancePart', 'next');
   }
 
+
   function handlePrevItem() {
     if (state.currentItem === 0) return;
     actions.setButtonDisabled('prev', true);
@@ -516,6 +543,8 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   }
 
   function handleRestart() {
+    if (getAttemptsRemaining() === 0) return;
+    testAttemptNumberRef.current += 1;
     TC.getItemStates()!.clear();
     shownSectionIntrosRef.current.clear();
     actions.restart();
@@ -587,6 +616,12 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     handleEvaluatedAttempt(data.target, data.state);
   }
 
+  function getAttemptsRemaining(): number | null {
+    const max = sessionControlRef.current?.getMaxAttempts() ?? 1;
+    if (max === 0) return null;
+    return Math.max(0, max - testAttemptNumberRef.current);
+  }
+
   function raiseAssessAndResponse(itemState: LegacyAttemptState) {
     const duration = itemStartedAtRef.current ? (Date.now() - itemStartedAtRef.current) / 1000 : 0;
     const scoreVar = itemState.outcomeVariables.find((v) => v.identifier === 'SCORE');
@@ -634,7 +669,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
       case 'endAttemptInteraction':
         TelemetryService.logInteraction('end-attempt-interaction', state.currentItem);
         return;
-      case 'proceed':
+      case 'proceed': {
         switch (target) {
           case 'navigateNextItem': return navigateNextItem();
           case 'navigatePrevItem': return navigatePrevItem();
@@ -643,6 +678,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
           case 'openReview': return openReview();
           default: return;
         }
+      }
     }
   }
 
@@ -678,10 +714,14 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     pendingSectionIndex: getPendingSectionIndex(),
     answeredCount: getSummary().filter((item) => item.answered).length,
     isLastItem: state.currentItem + 1 === state.maxItems,
+    attemptsRemaining: getAttemptsRemaining(),
 
     initialize,
     setDockedStimulusFactory,
 
+    handleBeginAssessment,
+    handleBeginAssessmentAtSection,
+    handleGoToAssessmentIntro,
     handleNextItem,
     handleAdvancePart,
     handlePrevItem,

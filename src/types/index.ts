@@ -117,6 +117,8 @@ export interface RunnerConfig {
   previewUrl?: string;
   stimulusList?: StimulusDescriptor[];
   showSectionIntro?: boolean;
+  showAssessmentIntro?: boolean;
+  timeLimitSeconds?: number;
   context?: Record<string, unknown>;
 }
 
