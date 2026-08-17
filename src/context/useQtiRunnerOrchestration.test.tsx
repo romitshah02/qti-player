@@ -131,6 +131,9 @@ describe('useQtiRunnerOrchestration', () => {
       expect(player.loadXml).toHaveBeenLastCalledWith(itemXml('i2'), expect.anything());
 
       await act(async () => result.current.onSectionJump(result.current.sectionsWithCounts[0]));
+      await act(async () => {
+        result.current.handleEndAttemptCompleted(endAttemptEvent({}, 'i2'));
+      });
       expect(player.loadXml).toHaveBeenLastCalledWith(itemXml('i1'), expect.objectContaining({ status: 'completed' }));
       vi.mocked(player.endAttempt).mockClear();
       await act(async () => result.current.handleNextItem());
