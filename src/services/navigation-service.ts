@@ -8,6 +8,7 @@ export type NavigationTarget =
   | 'navigateItem'
   | 'navigateEnd'
   | 'openReview'
+  | 'sectionTimeExpired'
   | null;
 
 export interface NavigationDecision {
@@ -41,6 +42,7 @@ export interface NavigationContext {
 export function resolveNavigationOutcome(target: NavigationTarget, state: LegacyAttemptState, ctx: NavigationContext): NavigationDecision {
   if (target === 'advancePart') return { action: 'advancePart' };
   if (target === 'openReview') return { action: 'proceed' }; // read-only, never blocked by incompleteness
+  if (target === 'sectionTimeExpired') return { action: 'proceed' };
 
   if (target === 'navigateNextItem' || target === 'navigatePrevItem' || target === 'navigateItem' || target === 'navigateEnd') {
     if (isInvalidResponses(state.validationMessages, ctx.validateResponses)) {

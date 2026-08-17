@@ -107,6 +107,8 @@ export async function resolveConfig(): Promise<RunnerConfig> {
       name: s.name as string,
       blurb: s.blurb,
       itemIdentifiers: s.itemIdentifiers as string[],
+      timeLimitSeconds: s.timeLimitSeconds ?? undefined,
+      allowLateSubmission: s.allowLateSubmission,
     })),
     items: itemRefs.map((ref) => {
       const meta = itemMetaByIdentifier.get(ref.identifier as string);

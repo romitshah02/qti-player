@@ -67,6 +67,8 @@ export interface FlattenedSection {
   name: string | null;
   blurb: string;
   itemIdentifiers: (string | null)[];
+  timeLimitSeconds: number | null;
+  allowLateSubmission: boolean;
 }
 
 function parseItemRef(el: Element): ItemRef {
@@ -139,6 +141,8 @@ export function flattenSections(parsedTest: ParsedTest): FlattenedSection[] {
         name: section.title,
         blurb: section.rubricBlockText,
         itemIdentifiers: section.itemRefs.map((ref) => ref.identifier),
+        timeLimitSeconds: section.timeLimits?.maxSeconds ?? null,
+        allowLateSubmission: section.timeLimits?.allowLateSubmission ?? false,
       });
     }
   }

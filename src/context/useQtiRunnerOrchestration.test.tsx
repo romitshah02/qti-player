@@ -52,7 +52,95 @@ const TWO_SECTION_CONFIG: RunnerConfig = {
   showAssessmentIntro: true,
 };
 
+function timedTwoSectionConfig(allowLateSubmission: boolean): RunnerConfig {
+  return {
+    title: 'Timed Quiz',
+    items: [
+      { identifier: 'i1', guid: 'g1', xml: itemXml('i1'), sessionControl: { submissionMode: 'individual' } },
+      { identifier: 'i2', guid: 'g2', xml: itemXml('i2'), sessionControl: { submissionMode: 'individual' } },
+    ],
+    sections: [
+      { identifier: 'sec1', name: 'Section A', blurb: '', itemIdentifiers: ['i1'], timeLimitSeconds: 5, allowLateSubmission },
+      { identifier: 'sec2', name: 'Section B', blurb: '', itemIdentifiers: ['i2'] },
+    ],
+    showSectionIntro: false,
+    showAssessmentIntro: false,
+  };
+}
+
 describe('useQtiRunnerOrchestration', () => {
+  it('auto-advances to the next section once its time limit expires (allowLateSubmission: false)', async () => {
+    vi.useFakeTimers();
+    try {
+      const { result } = renderHook(() => useQtiRunnerOrchestration(timedTwoSectionConfig(false)), { wrapper });
+      const player = mockItemPlayer();
+      result.current.itemPlayerRef.current = player;
+      await act(async () => result.current.initialize());
+
+      expect(result.current.sectionTimeRemaining).toBe(5);
+
+      await act(async () => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(player.endAttempt).toHaveBeenCalledTimes(1); // forced completion of i1
+
+      await act(async () => {
+        result.current.handleEndAttemptCompleted(endAttemptEvent({}, 'i1'));
+      });
+
+      expect(player.loadXml).toHaveBeenLastCalledWith(itemXml('i2'), expect.anything());
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('goes into overtime (no forced advance) once time limit expires with allowLateSubmission: true', async () => {
+    vi.useFakeTimers();
+    try {
+      const { result } = renderHook(() => useQtiRunnerOrchestration(timedTwoSectionConfig(true)), { wrapper });
+      const player = mockItemPlayer();
+      result.current.itemPlayerRef.current = player;
+      await act(async () => result.current.initialize());
+
+      await act(async () => {
+        vi.advanceTimersByTime(6000);
+      });
+
+      expect(result.current.sectionTimeOverrun).toBe(true);
+      expect(player.endAttempt).not.toHaveBeenCalled();
+      expect(player.loadXml).toHaveBeenLastCalledWith(itemXml('i1'), expect.anything());
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('still allows browsing back into an expired section, but loads its item read-only (locked, not blocked)', async () => {
+    vi.useFakeTimers();
+    try {
+      const { result } = renderHook(() => useQtiRunnerOrchestration(timedTwoSectionConfig(false)), { wrapper });
+      const player = mockItemPlayer();
+      result.current.itemPlayerRef.current = player;
+      await act(async () => result.current.initialize());
+
+      await act(async () => {
+        vi.advanceTimersByTime(5000);
+      });
+      await act(async () => {
+        result.current.handleEndAttemptCompleted(endAttemptEvent({}, 'i1'));
+      });
+      expect(player.loadXml).toHaveBeenLastCalledWith(itemXml('i2'), expect.anything());
+
+      await act(async () => result.current.onSectionJump(result.current.sectionsWithCounts[0]));
+      expect(player.loadXml).toHaveBeenLastCalledWith(itemXml('i1'), expect.objectContaining({ status: 'completed' }));
+      vi.mocked(player.endAttempt).mockClear();
+      await act(async () => result.current.handleNextItem());
+      expect(player.endAttempt).not.toHaveBeenCalled();
+      expect(player.loadXml).toHaveBeenLastCalledWith(itemXml('i2'), expect.anything());
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('onSectionJump during review loads the target section\'s item into review (read-only), not the live item panel', async () => {
     const { result } = renderHook(() => useQtiRunnerOrchestration(TWO_SECTION_CONFIG), { wrapper });
     const player = mockItemPlayer();

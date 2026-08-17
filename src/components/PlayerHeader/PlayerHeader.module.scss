@@ -14,11 +14,19 @@
   z-index: 25;
 }
 
-.left,
-.right {
+.left {
   @include m.flex-center;
   gap: v.$space-3;
   min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.center,
+.right {
+  @include m.flex-center;
+  gap: v.$space-3;
+  flex: 0 0 auto;
 }
 
 .menuBtn {
@@ -128,16 +136,43 @@
 }
 
 .timer {
+  @include m.flex-center;
+  gap: v.$space-1;
+  flex-shrink: 0;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
   font-weight: v.$fw-medium;
-  padding: v.$space-1 v.$space-2;
+  padding: v.$space-1 v.$space-3;
   border-radius: var(--qtr-r-pill);
   background: v.$g100;
+  color: v.$g700;
+}
+
+.timerIcon {
+  flex-shrink: 0;
+}
+
+.timerLabel {
+  color: v.$gray-500;
+
+  @include m.mobile {
+    display: none;
+  }
+}
+
+.timerValue {
+  line-height: 1;
 }
 
 .timerLow {
   background: v.$danger-bg;
   color: v.$danger;
+}
+
+.timerOverrun {
+  background: v.$g100;
+  color: v.$gray-500;
+  font-style: italic;
 }
 
 .helpWrap {

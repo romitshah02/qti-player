@@ -23,9 +23,32 @@ describe('test-xml-parser', () => {
   it('flattens sections and item refs', () => {
     const parsed = parseAssessmentTest(SAMPLE_TEST_XML);
     expect(flattenSections(parsed)).toEqual([
-      { identifier: 'sec1', name: 'Section One', blurb: 'Read carefully.', itemIdentifiers: ['item1', 'item2'] },
+      {
+        identifier: 'sec1',
+        name: 'Section One',
+        blurb: 'Read carefully.',
+        itemIdentifiers: ['item1', 'item2'],
+        timeLimitSeconds: null,
+        allowLateSubmission: false,
+      },
     ]);
     expect(flattenItemRefs(parsed).map((r) => r.href)).toEqual(['item1.xml', 'item2.xml']);
+  });
+
+  it('flattens a section\'s qti-time-limits into timeLimitSeconds/allowLateSubmission', () => {
+    const xml = `<?xml version="1.0"?>
+<qti-assessment-test identifier="test1" title="Timed Test">
+  <qti-test-part identifier="part1" submission-mode="individual">
+    <qti-assessment-section identifier="sec1" title="Section One">
+      <qti-time-limits max-time="PT10M" allow-late-submission="true"/>
+      <qti-assessment-item-ref identifier="item1" href="item1.xml"/>
+    </qti-assessment-section>
+  </qti-test-part>
+</qti-assessment-test>`;
+    const parsed = parseAssessmentTest(xml);
+    const [section] = flattenSections(parsed);
+    expect(section.timeLimitSeconds).toBe(600);
+    expect(section.allowLateSubmission).toBe(true);
   });
 
   it('throws on malformed XML', () => {

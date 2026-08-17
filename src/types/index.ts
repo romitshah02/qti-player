@@ -86,6 +86,8 @@ export interface Section {
   itemIdentifiers?: (string | null)[];
   answered?: number;
   total?: number;
+  timeLimitSeconds?: number | null;
+  allowLateSubmission?: boolean;
 }
 
 export interface ItemSummaryEntry {
@@ -99,6 +101,8 @@ export interface ConfigSection {
   name: string;
   blurb?: string;
   itemIdentifiers: string[];
+  timeLimitSeconds?: number;
+  allowLateSubmission?: boolean;
 }
 
 /**

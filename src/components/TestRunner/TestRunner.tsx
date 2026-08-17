@@ -69,6 +69,9 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
           maxItems={state.maxItems}
           reviewEnabled={runner.isLastItem && state.currentPanel === 'item'}
           showMenuToggle
+          testTimeRemaining={runner.testTimeRemaining}
+          sectionTimeRemaining={runner.sectionTimeRemaining}
+          sectionTimeOverrun={runner.sectionTimeOverrun}
           onMenuToggle={() => actions.setDrawerOpen(true)}
           onBrandClick={runner.handleGoToAssessmentIntro}
           onSectionJump={runner.onSectionJump}

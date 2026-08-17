@@ -17,7 +17,7 @@
  * stability buys nothing and would just add ~30 interdependent dependency
  * arrays to get right.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQtiRunner } from './useQtiRunner';
 import type { Panel, Toast } from './QtiRunnerContext';
 import { TestControllerUtilities } from '@/services/test-controller';
@@ -79,6 +79,14 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   // Set right before a panel dispatch whose target element won't exist in
   // the DOM until after the next commit — see the module doc for why.
   const pendingLoadRef = useRef<{ panel: Panel; index: number } | null>(null);
+  const activeTimedSectionIdRef = useRef<string | null>(null);
+  const sectionElapsedMsRef = useRef<Map<string, number>>(new Map());
+  const sectionExpiryFiredRef = useRef(false);
+  const [sectionTimeRemaining, setSectionTimeRemaining] = useState<number | null>(null);
+  const [sectionTimeOverrun, setSectionTimeOverrun] = useState(false);
+  const handleSectionTimeExpiredRef = useRef<() => void>(() => {});
+  const [testTimeRemaining, setTestTimeRemaining] = useState<number | null>(null);
+  const [expiredSectionIds, setExpiredSectionIds] = useState<Set<string>>(new Set());
 
   // Deliberately no dependency array — runs after every commit, but the
   // pending-ref guard makes it a no-op except right after
@@ -89,6 +97,69 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     pendingLoadRef.current = null;
     if (pending.panel === 'item') void loadItemAtIndex(pending.index);
     else void loadReviewItemAtIndex(pending.index);
+  });
+
+  useEffect(() => {
+    const currentSectionId = getCurrentSectionId();
+
+    if (state.currentPanel !== 'item' || !currentSectionId) return;
+
+    const section = state.sections.find((s) => s.identifier === currentSectionId);
+
+    const alreadyExpired = expiredSectionIds.has(currentSectionId);
+
+    if (currentSectionId !== activeTimedSectionIdRef.current) {
+      activeTimedSectionIdRef.current = currentSectionId;
+      sectionExpiryFiredRef.current = alreadyExpired;
+      setSectionTimeOverrun(false);
+      const elapsedSoFarMs = sectionElapsedMsRef.current.get(currentSectionId) ?? 0;
+      setSectionTimeRemaining(
+        section?.timeLimitSeconds ? (alreadyExpired ? 0 : Math.max(0, Math.ceil(section.timeLimitSeconds - elapsedSoFarMs / 1000))) : null,
+      );
+    }
+
+    if (!section?.timeLimitSeconds || alreadyExpired) return;
+
+    const limitSeconds = section.timeLimitSeconds;
+    const allowLate = section.allowLateSubmission ?? false;
+    const resumedAt = Date.now(); // start of THIS viewing session, not the section's first-ever entry
+    const baseElapsedMs = sectionElapsedMsRef.current.get(currentSectionId) ?? 0;
+    const intervalHolder: { current: ReturnType<typeof setInterval> | null } = { current: null };
+
+    const tick = () => {
+      const elapsedMs = baseElapsedMs + (Date.now() - resumedAt);
+      const remaining = Math.max(0, Math.ceil(limitSeconds - elapsedMs / 1000));
+      setSectionTimeRemaining(remaining);
+      if (remaining > 0) return;
+      if (allowLate) {
+        setSectionTimeOverrun(true);
+      } else if (!sectionExpiryFiredRef.current) {
+        sectionExpiryFiredRef.current = true;
+        setExpiredSectionIds((prev) => new Set(prev).add(currentSectionId));
+        handleSectionTimeExpiredRef.current();
+      }
+      if (intervalHolder.current) clearInterval(intervalHolder.current);
+    };
+    tick();
+    intervalHolder.current = setInterval(tick, 1000);
+    return () => {
+      if (intervalHolder.current) clearInterval(intervalHolder.current);
+      // Pause: bank whatever elapsed during this viewing session so a later
+      // return to this section resumes instead of restarting.
+      sectionElapsedMsRef.current.set(currentSectionId, baseElapsedMs + (Date.now() - resumedAt));
+    };
+  });
+
+  useEffect(() => {
+    const started = testStartedAtRef.current;
+    if (!config.timeLimitSeconds || started === null || state.currentPanel === 'assessment-intro' || state.currentPanel === 'results') {
+      return;
+    }
+    const limitSeconds = config.timeLimitSeconds;
+    const tick = () => setTestTimeRemaining(Math.max(0, Math.ceil(limitSeconds - (Date.now() - started) / 1000)));
+    tick();
+    const intervalId = setInterval(tick, 1000);
+    return () => clearInterval(intervalId);
   });
 
   function switchToItemAndLoad(index: number) {
@@ -168,13 +239,22 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
 
   function buildSections(cfg: RunnerConfig): FlattenedSection[] {
     if (Array.isArray(cfg.sections) && cfg.sections.length) {
-      return cfg.sections.map((s) => ({ identifier: s.identifier, name: s.name, blurb: s.blurb || '', itemIdentifiers: s.itemIdentifiers }));
+      return cfg.sections.map((s) => ({
+        identifier: s.identifier,
+        name: s.name,
+        blurb: s.blurb || '',
+        itemIdentifiers: s.itemIdentifiers,
+        timeLimitSeconds: s.timeLimitSeconds ?? null,
+        allowLateSubmission: s.allowLateSubmission ?? false,
+      }));
     }
     return [{
       identifier: 'default',
       name: cfg.title || 'Section A',
       blurb: '',
       itemIdentifiers: cfg.items.map((item) => item.identifier),
+      timeLimitSeconds: null,
+      allowLateSubmission: false,
     }];
   }
 
@@ -184,6 +264,11 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     const item = TC.getItemAtIndex(index);
     if (!item) return null;
     return state.sections.find((s) => s.itemIdentifiers.includes(item.identifier)) || null;
+  }
+
+  function isItemInExpiredSection(index: number): boolean {
+    const section = getSectionForIndex(index);
+    return !!section && expiredSectionIds.has(section.identifier as string);
   }
 
   function isFirstItemOfSection(index: number): boolean {
@@ -305,6 +390,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     });
 
     const configuration = getConfiguration(item.guid);
+    if (isItemInExpiredSection(index)) configuration.status = 'review';
     destroyDockedStimuli();
     await itemPlayerRef.current!.loadXml(xml, LongsightPlayerAdapter.toLoadOptions(configuration));
     await loadStimuliForItem(item, xml);
@@ -502,6 +588,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
 
   function initiateNavigateNextItem() {
     if (state.currentItem + 1 === state.maxItems) return initiateNavigateEnd();
+    if (isItemInExpiredSection(state.currentItem)) return navigateNextItem();
     endOrSuspendAttempt('navigateNextItem', 'next');
   }
 
@@ -515,6 +602,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   }
 
   function initiateNavigatePrevItem() {
+    if (isItemInExpiredSection(state.currentItem)) return navigatePrevItem();
     endOrSuspendAttempt('navigatePrevItem', 'prev');
   }
 
@@ -529,6 +617,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
 
   function initiateNavigateItem(target: NavigationTarget, data: { index: number; identifier: string }) {
     TC.setNavigateItemData(data);
+    if (isItemInExpiredSection(state.currentItem)) return navigateItem();
     endOrSuspendAttempt(target, 'goto');
   }
 
@@ -540,6 +629,37 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     onNavEvent?.({ type: 'goto', currentItem: data.index, maxItems: state.maxItems });
     TelemetryService.logInteraction('goto', data.index);
   }
+
+  function getNextSectionAfterCurrent(): FlattenedSection | null {
+    const currentId = getCurrentSectionId();
+    if (!currentId) return null;
+    const index = state.sections.findIndex((s) => s.identifier === currentId);
+    if (index < 0 || index + 1 >= state.sections.length) return null;
+    return state.sections[index + 1];
+  }
+
+  function navigateToNextSectionOrEnd() {
+    const nextSection = getNextSectionAfterCurrent();
+    const identifier = nextSection ? (nextSection.itemIdentifiers as string[])[0] : null;
+    const items = TC.getItems();
+    const index = identifier && items ? items.findIndex((item) => item.identifier === identifier) : -1;
+    if (index < 0) {
+      navigateEnd();
+      return;
+    }
+    actions.setCurrentItem(index);
+    void loadItemAtIndex(index);
+    actions.updateButtonState();
+    onNavEvent?.({ type: 'goto', currentItem: index, maxItems: state.maxItems });
+    TelemetryService.logInteraction('section-time-expired-advance', index);
+  }
+
+  function handleSectionTimeExpired() {
+    if (state.currentPanel !== 'item') return;
+    TelemetryService.logInteraction('section-time-expired', state.currentItem);
+    endOrSuspendAttempt('sectionTimeExpired', 'next');
+  }
+  handleSectionTimeExpiredRef.current = handleSectionTimeExpired;
 
   function initiateNavigateEnd() {
     endOrSuspendAttempt('navigateEnd', null);
@@ -567,6 +687,9 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     testDurationMsRef.current = null;
     TC.getItemStates()!.clear();
     shownSectionIntrosRef.current.clear();
+    activeTimedSectionIdRef.current = null;
+    sectionElapsedMsRef.current.clear();
+    setExpiredSectionIds(new Set());
     actions.restart();
     switchToItemAndLoad(0);
     actions.updateButtonState();
@@ -690,6 +813,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
           case 'navigateItem': return navigateItem();
           case 'navigateEnd': return navigateEnd();
           case 'openReview': return openReview();
+          case 'sectionTimeExpired': return navigateToNextSectionOrEnd();
           default: return;
         }
       }
@@ -732,6 +856,9 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
     answeredCount: getSummary().filter((item) => item.answered).length,
     isLastItem: state.currentItem + 1 === state.maxItems,
     attemptsRemaining: getAttemptsRemaining(),
+    sectionTimeRemaining,
+    sectionTimeOverrun,
+    testTimeRemaining,
 
     initialize,
     setDockedStimulusFactory,

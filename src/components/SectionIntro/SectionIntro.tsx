@@ -1,4 +1,5 @@
 import type { Section } from '@/types';
+import { formatDuration } from '@/utils/format-duration';
 import styles from './SectionIntro.module.scss';
 
 const DEFAULT_INSTRUCTIONS = "All questions are mandatory. Choose the response you believe is correct — you can revisit any question before submitting.";
@@ -28,6 +29,15 @@ export function SectionIntro({ section, sectionIndex, onBegin }: SectionIntroPro
             <h1 className={styles.title}>{questionLabel}</h1>
           </div>
           <span className={styles.bannerDeco} aria-hidden="true" />
+          {!!section.timeLimitSeconds && (
+            <div className={styles.timeLimitBadge}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3.5 2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span>{formatDuration(section.timeLimitSeconds)}</span>
+            </div>
+          )}
         </div>
         <div className={styles.body}>
           <div className={styles.instructions}>

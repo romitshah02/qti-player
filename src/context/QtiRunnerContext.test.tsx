@@ -8,7 +8,7 @@ const wrapper = ({ children }: { children: ReactNode }) => <QtiRunnerProvider>{c
 
 describe('runnerReducer', () => {
   it('INITIALIZE resets to a fresh run at item 0 with the given title/sections', () => {
-    const sections = [{ identifier: 'sec1', name: 'A', blurb: '', itemIdentifiers: ['i1'] }];
+    const sections = [{ identifier: 'sec1', name: 'A', blurb: '', itemIdentifiers: ['i1'], timeLimitSeconds: null, allowLateSubmission: false }];
     const next = runnerReducer(initialState, { type: RunnerActionTypes.INITIALIZE, payload: { testTitle: 'Quiz', maxItems: 3, sections } });
     expect(next.currentItem).toBe(0);
     expect(next.maxItems).toBe(3);

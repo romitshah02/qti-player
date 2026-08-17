@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Section } from '@/types';
+import { formatDuration } from '@/utils/format-duration';
 import styles from './PlayerHeader.module.scss';
 
 export interface PlayerHeaderProps {
@@ -10,11 +11,32 @@ export interface PlayerHeaderProps {
   maxItems: number;
   reviewEnabled?: boolean;
   showMenuToggle?: boolean;
+  testTimeRemaining?: number | null;
+  sectionTimeRemaining?: number | null;
+  sectionTimeOverrun?: boolean;
   onMenuToggle?: () => void;
   onBrandClick?: () => void;
   onSectionJump?: (section: Section) => void;
   onReview: () => void;
   onSubmit: () => void;
+}
+
+function TimerBadge({ label, remaining, overrun = false }: { label: string; remaining: number; overrun?: boolean }) {
+  return (
+    <div
+      className={`${styles.timer} ${overrun ? styles.timerOverrun : remaining <= 60 ? styles.timerLow : ''}`}
+      role="timer"
+      aria-live="polite"
+      aria-label={`${label} time remaining`}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={styles.timerIcon}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3.5 2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <span className={styles.timerLabel}>{label}</span>
+      <span className={styles.timerValue}>{overrun ? 'Overtime' : formatDuration(remaining)}</span>
+    </div>
+  );
 }
 
 export function PlayerHeader({
@@ -25,6 +47,9 @@ export function PlayerHeader({
   maxItems,
   reviewEnabled = false,
   showMenuToggle = false,
+  testTimeRemaining = null,
+  sectionTimeRemaining = null,
+  sectionTimeOverrun = false,
   onMenuToggle,
   onBrandClick,
   onSectionJump,
@@ -68,6 +93,11 @@ export function PlayerHeader({
             ))}
           </ol>
         )}
+      </div>
+
+      <div className={styles.center}>
+        {testTimeRemaining !== null && <TimerBadge label="Test" remaining={testTimeRemaining} />}
+        {sectionTimeRemaining !== null && <TimerBadge label="Section" remaining={sectionTimeRemaining} overrun={sectionTimeOverrun} />}
       </div>
 
       <div className={styles.right}>
