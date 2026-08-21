@@ -24,4 +24,3 @@ web-component/assets
 *.sln
 *.sw?
 
-package-lock.json
