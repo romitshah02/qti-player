@@ -47,10 +47,14 @@ class Qti3TestRunnerElement extends HTMLElement {
       const hostStyle = document.createElement('style');
       hostStyle.textContent = `
         :host {
+          /* all:initial resets inherited properties (including font-family) to
+             browser defaults — re-declare font here, via the same portal-bridge
+             var _portal-bridge.scss defines on :host, or text falls back to serif. */
           all: initial;
           display: block;
           height: 100%;
           box-sizing: border-box;
+          font-family: var(--qtr-font-sans, "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
         }
       `;
       this.shadow.insertBefore(hostStyle, container);
