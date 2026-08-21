@@ -60,6 +60,17 @@ const build = async () => {
       await writeFile(path.join(DEST, 'styles.css'), fontFaces);
     }
 
+    // 2b. Copy the ./config export (built separately, see vite.lib.config.ts /
+    // npm run build:config) — a declared, load-bearing export, so a missing
+    // dist-lib/ is a hard failure, not a soft warning like the CSS lookup above.
+    const DIST_LIB = 'dist-lib';
+    const CONFIG_DEST = path.join(PKG_ROOT, 'config');
+    if (!fs.existsSync(DIST_LIB)) {
+      throw new Error(`Missing ${DIST_LIB}/ — did 'vite build --config vite.lib.config.ts' run first?`);
+    }
+    console.log('[Build] Copying ./config export files...');
+    await cp(DIST_LIB, CONFIG_DEST, { recursive: true });
+
     // 3. Example HTML.
     console.log('[Build] Creating example HTML...');
     const exampleHtml = `<!DOCTYPE html>
@@ -90,8 +101,9 @@ const build = async () => {
       exports: {
         '.': './assets/qti-player/qti3-test-runner.js',
         './styles': './assets/qti-player/styles.css',
+        './config': { types: './config/index.d.ts', import: './config/index.js' },
       },
-      files: ['assets/qti-player/'],
+      files: ['assets/qti-player/', 'config/'],
       homepage: 'https://github.com/romitshah02/qti-player#readme',
       repository: {
         type: 'git',

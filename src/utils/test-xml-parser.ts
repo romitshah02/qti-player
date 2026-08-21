@@ -4,7 +4,7 @@ export interface TimeLimits {
   allowLateSubmission: boolean;
 }
 
-interface ItemRef {
+export interface ItemRef {
   identifier: string | null;
   href: string | null;
   timeLimits: TimeLimits | null;
