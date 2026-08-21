@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<qti-assessment-stimulus xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0"
-    identifier="sample-stimulus" title="The Red Planet">
-  <qti-stimulus-body>
-    <p>Mars is the fourth planet from the Sun and the second-smallest planet in the Solar System.</p>
-    <p>It is often called the "Red Planet" because iron oxide on its surface gives it a reddish appearance.</p>
-  </qti-stimulus-body>
-</qti-assessment-stimulus>

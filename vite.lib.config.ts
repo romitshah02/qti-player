@@ -15,12 +15,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * (the web-component build needs `iife`, this needs `es`) in one config.
  */
 export default defineConfig({
+  publicDir: false,
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
-  plugins: [dts({ include: ['src'], outDir: 'dist-lib', rollupTypes: true })],
+  plugins: [dts({ include: ['src'], outDir: 'dist-lib', rollupTypes: true, tsconfigPath: './tsconfig.app.json' })],
   build: {
     outDir: 'dist-lib',
     lib: {
