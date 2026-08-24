@@ -28,8 +28,13 @@ const build = async () => {
       throw new Error(`Missing ${bundlePath} — did 'vite build' run first?`);
     }
 
-    // 1. Locate the single compiled stylesheet (cssCodeSplit:false → one .css).
-    const cssFile = fs.readdirSync(DIST).find((f) => f.endsWith('.css'));
+    // 1. Locate the compiled stylesheet (cssCodeSplit:false → one .css, but a
+    //    dist/ left dirty by a prior build can have a stale one lying around
+    //    too — pick the most recently written match, not just the first).
+    const cssCandidates = fs.readdirSync(DIST).filter((f) => f.endsWith('.css'));
+    const cssFile = cssCandidates
+      .map((f) => ({ f, mtimeMs: fs.statSync(path.join(DIST, f)).mtimeMs }))
+      .sort((a, b) => b.mtimeMs - a.mtimeMs)[0]?.f;
     let bundleJs = fs.readFileSync(bundlePath, 'utf-8');
     const css = cssFile ? fs.readFileSync(path.join(DIST, cssFile), 'utf-8') : '';
 

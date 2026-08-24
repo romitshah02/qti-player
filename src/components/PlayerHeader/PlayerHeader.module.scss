@@ -63,6 +63,7 @@
 
 .brandBadge {
   @include m.flex-center;
+  flex-shrink: 0;
   width: 2rem;
   height: 2rem;
   border-radius: var(--qtr-r-pill);
@@ -79,7 +80,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 
-  @include m.tablet {
+  @include m.mobile {
     display: none;
   }
 }

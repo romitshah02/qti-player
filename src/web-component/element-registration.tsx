@@ -25,10 +25,35 @@ declare const BUNDLED_CSS: string | undefined;
 
 installStylesheetPatch();
 
+function patchInlineChoiceFocusOut(shadow: ShadowRoot): () => void {
+  const handler = (event: FocusEvent) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const wrapper = target.closest('.qti3-inline-choice-control');
+    if (!wrapper) return;
+
+    event.stopPropagation();
+
+    window.setTimeout(() => {
+      if (wrapper.contains(shadow.activeElement)) return;
+      const listbox = wrapper.querySelector<HTMLElement>('.qti3-inline-choice-listbox');
+      const trigger = wrapper.querySelector<HTMLElement>('.qti3-inline-choice-trigger');
+      if (listbox && !listbox.hidden) {
+        listbox.hidden = true;
+        trigger?.setAttribute('aria-expanded', 'false');
+      }
+    });
+  };
+
+  shadow.addEventListener('focusout', handler, true);
+  return () => shadow.removeEventListener('focusout', handler, true);
+}
+
 class Qti3TestRunnerElement extends HTMLElement {
   private shadow: ShadowRoot;
   private root: Root | null = null;
   private unsubscribeTelemetry: (() => void) | null = null;
+  private unpatchInlineChoiceFocusOut: (() => void) | null = null;
 
   constructor() {
     super();
@@ -61,6 +86,7 @@ class Qti3TestRunnerElement extends HTMLElement {
       this.injectStyles(container);
 
       this.unsubscribeTelemetry = subscribeTelemetry((event) => this.dispatch('telemetryEvent', event));
+      this.unpatchInlineChoiceFocusOut = patchInlineChoiceFocusOut(this.shadow);
 
       this.root = createRoot(container);
       this.root.render(
@@ -86,6 +112,10 @@ class Qti3TestRunnerElement extends HTMLElement {
     if (this.unsubscribeTelemetry) {
       this.unsubscribeTelemetry();
       this.unsubscribeTelemetry = null;
+    }
+    if (this.unpatchInlineChoiceFocusOut) {
+      this.unpatchInlineChoiceFocusOut();
+      this.unpatchInlineChoiceFocusOut = null;
     }
   }
 
