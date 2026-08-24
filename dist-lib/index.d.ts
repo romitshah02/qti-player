@@ -115,6 +115,10 @@ export declare interface RunnerConfig {
     showAssessmentIntro?: boolean;
     timeLimitSeconds?: number;
     context?: Record<string, unknown>;
+    derivedMetadata?: {
+        timeLimitSeconds?: number;
+        maxAttempts?: number;
+    };
 }
 
 export declare interface Section {

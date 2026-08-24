@@ -44,7 +44,7 @@ const build = async () => {
       // BUNDLED_CSS is the FULL stylesheet, injected into the shadow root —
       // must stay complete, the player's own CSS depends on it.
       const safeCss = css.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
-      bundleJs = `var BUNDLED_CSS = \`${safeCss}\`;\n${bundleJs}`;
+      bundleJs = `(function(){\nvar BUNDLED_CSS = \`${safeCss}\`;\n${bundleJs}\n})();`;
       fs.writeFileSync(bundlePath, bundleJs);
     } else {
       console.warn('[Build] No CSS emitted; the bundle will ship without embedded styles.');

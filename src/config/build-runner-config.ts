@@ -37,8 +37,10 @@ export async function buildRunnerConfig(identifier: string, content: QtiContentM
   const rawTestXml = await contentLoader.fetchText(testEntry.href);
   const parsedTest = parseAssessmentTest(rawTestXml);
   const itemRefs = flattenItemRefs(parsedTest);
-  const timeLimitSeconds = content.timeLimits?.max ?? parsedTest.timeLimits?.maxSeconds ?? undefined;
-  const maxAttempts = content.maxAttempts ?? parsedTest.parts[0]?.maxAttempts ?? undefined;
+  const derivedTimeLimitSeconds = content.timeLimits?.max == null ? parsedTest.timeLimits?.maxSeconds ?? undefined : undefined;
+  const derivedMaxAttempts = content.maxAttempts == null ? parsedTest.parts[0]?.maxAttempts ?? undefined : undefined;
+  const timeLimitSeconds = content.timeLimits?.max ?? derivedTimeLimitSeconds;
+  const maxAttempts = content.maxAttempts ?? derivedMaxAttempts;
 
   return {
     title: parsedTest.title || content.name || identifier,
@@ -46,6 +48,9 @@ export async function buildRunnerConfig(identifier: string, content: QtiContentM
     previewUrl: content.previewUrl,
     stimulusList,
     timeLimitSeconds,
+    ...((derivedTimeLimitSeconds != null || derivedMaxAttempts != null) && {
+      derivedMetadata: { timeLimitSeconds: derivedTimeLimitSeconds, maxAttempts: derivedMaxAttempts },
+    }),
     sessionControl: { show_feedback: true, ...(maxAttempts != null && { max_attempts: maxAttempts }) },
     sections: flattenSections(parsedTest).map((s) => ({
       identifier: s.identifier as string,

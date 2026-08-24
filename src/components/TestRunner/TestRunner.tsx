@@ -53,6 +53,9 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
 
   useEffect(() => {
     onPlayerEvent?.({ type: 'ready' });
+    if (config.derivedMetadata) {
+      onPlayerEvent?.({ type: 'derived-metadata', ...config.derivedMetadata });
+    }
     runner.initialize();
     // Mount-only — config is the one prop this app takes and isn't expected
     // to change after mount (matches the original's mounted()-only initialize).

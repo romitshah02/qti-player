@@ -204,16 +204,20 @@ async function b(e, t) {
 			stimulusRefs: e.stimulusRefs || []
 		}))
 	};
-	let a = o(await new y(t.previewUrl).fetchText(i.href)), l = c(a), u = t.timeLimits?.max ?? a.timeLimits?.maxSeconds ?? void 0, d = t.maxAttempts ?? a.parts[0]?.maxAttempts ?? void 0;
+	let a = o(await new y(t.previewUrl).fetchText(i.href)), l = c(a), u = t.timeLimits?.max == null ? a.timeLimits?.maxSeconds ?? void 0 : void 0, d = t.maxAttempts == null ? a.parts[0]?.maxAttempts ?? void 0 : void 0, f = t.timeLimits?.max ?? u, p = t.maxAttempts ?? d;
 	return {
 		title: a.title || t.name || e,
 		submissionMode: a.parts[0]?.submissionMode || "simultaneous",
 		previewUrl: t.previewUrl,
 		stimulusList: n,
-		timeLimitSeconds: u,
+		timeLimitSeconds: f,
+		...(u != null || d != null) && { derivedMetadata: {
+			timeLimitSeconds: u,
+			maxAttempts: d
+		} },
 		sessionControl: {
 			show_feedback: !0,
-			...d != null && { max_attempts: d }
+			...p != null && { max_attempts: p }
 		},
 		sections: s(a).map((e) => ({
 			identifier: e.identifier,

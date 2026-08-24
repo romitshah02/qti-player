@@ -123,6 +123,7 @@ export interface RunnerConfig {
   showAssessmentIntro?: boolean;
   timeLimitSeconds?: number;
   context?: Record<string, unknown>;
+  derivedMetadata?: { timeLimitSeconds?: number; maxAttempts?: number };
 }
 
 export interface NavEvent {
@@ -136,4 +137,5 @@ export type PlayerEvent =
   | { type: 'item-ready' }
   | { type: 'alert'; code?: string; severity?: string; message: string }
   | { type: 'catalog'; [key: string]: unknown }
-  | { type: 'stimulus-catalog'; [key: string]: unknown };
+  | { type: 'stimulus-catalog'; [key: string]: unknown }
+  | { type: 'derived-metadata'; timeLimitSeconds?: number; maxAttempts?: number };
