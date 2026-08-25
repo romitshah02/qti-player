@@ -9,7 +9,7 @@ interface ContentReadBody {
 
 function writeBackDerivedMetadata(identifier: string, timeLimitSeconds: number | null | undefined, maxAttempts: number | null | undefined): void {
   if (timeLimitSeconds == null && maxAttempts == null) return;
-  fetch(`/content/v4/system/update/${identifier}`, {
+  fetch(`/content/v4/system/update/${encodeURIComponent(identifier)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -33,8 +33,11 @@ export async function resolveConfig(): Promise<RunnerConfig> {
   const identifier = params.get('identifier');
 
   if (!identifier) return sampleConfig;
+  if (!/^[A-Za-z0-9_-]+$/.test(identifier)) {
+    throw new Error(`[resolveConfig] invalid identifier: "${identifier}"`);
+  }
 
-  const response = await fetch(`/content/v4/read/${identifier}`);
+  const response = await fetch(`/content/v4/read/${encodeURIComponent(identifier)}`);
   if (!response.ok) {
     throw new Error(`[resolveConfig] content read failed for "${identifier}": ${response.status}`);
   }
