@@ -75,14 +75,30 @@ The single prop the runner takes — see [`RunnerConfig`](src/types/index.ts) fo
 | `stimulusList`, `previewUrl` | Shared-stimulus resolution — see [src/services/content-loader.ts](src/services/content-loader.ts). |
 | `context` | Sunbird `TelemetryContext` (`uid`, `sid`, `channel`, `pdata`, `host`, ...). Omit to skip telemetry entirely. |
 | `showSectionIntro` | Whether to show a section-intro screen before each section's first item. |
+| `showAssessmentIntro` | Whether to show an assessment-intro screen before the first item. |
+| `timeLimitSeconds` | Test-level time limit. |
+| `derivedMetadata` | `{ timeLimitSeconds?, maxAttempts? }` — set when these were derived from the test XML rather than supplied directly; the web component re-emits them as a `derived-metadata` `playerEvent` so a host can write them back to its own content metadata. |
 
 ## Architecture
 
 - [src/context/QtiRunnerContext.tsx](src/context/QtiRunnerContext.tsx) — rendered UI/data state (reducer): current panel, item index, transient UI.
-- [src/context/useQtiRunnerOrchestration.ts](src/context/useQtiRunnerOrchestration.ts) — the orchestrator: navigation, section intros, submit/restart, stimulus docking. One hook (not several) because these concerns are tightly mutually-recursive.
+- [src/context/useQtiRunnerOrchestration.ts](src/context/useQtiRunnerOrchestration.ts) — navigation and the endAttempt/suspend round-trip, kept together because they're mutually-recursive. Everything else split into its own hook: [useSectionTimer.ts](src/context/useSectionTimer.ts) / [useTestTimer.ts](src/context/useTestTimer.ts) (timers), [useStimulusDocking.ts](src/context/useStimulusDocking.ts), [useItemLoading.ts](src/context/useItemLoading.ts), [useAssessmentLifecycle.ts](src/context/useAssessmentLifecycle.ts), [useReview.ts](src/context/useReview.ts), and [orchestration-selectors.ts](src/context/orchestration-selectors.ts) (pure getters) — see that file's header comment for the full dependency rationale.
 - [src/services/](src/services/) — content loading, navigation decisions, telemetry, and adapters between this app's config/state shapes and the underlying engine's.
+- [src/config/](src/config/) — `buildRunnerConfig`, a standalone content-metadata → `RunnerConfig` helper built as its own bundle (see below), separate from the web-component build.
 - [src/components/TestRunner/](src/components/TestRunner/) — the root component; wires the orchestration hook to `<qti-assessment-item-player>` and its DOM events.
 - [src/web-component/element-registration.tsx](src/web-component/element-registration.tsx) — the custom-element entry point used by the production build.
+
+## Config helpers (`dist-lib`)
+
+`npm run build:config` (via [vite.lib.config.ts](vite.lib.config.ts)) builds [src/config/index.ts](src/config/index.ts) as a plain-ESM bundle to `dist-lib/index.js` (+ `.d.ts`) — unlike `dist-wc`, no `package.json` is generated for it yet, so a consumer (e.g. a content-node backend) currently pulls in `dist-lib/index.js` directly rather than via a published subpath import:
+
+```ts
+import { buildRunnerConfig } from './dist-lib/index.js';
+
+const runnerConfig = await buildRunnerConfig(identifier, contentMetadata);
+```
+
+`buildRunnerConfig` fetches and walks the test XML (via `parseAssessmentTest`/`flattenSections`/`flattenItemRefs`, also exported here) when a test package exists, deriving `timeLimitSeconds`/`max_attempts` from it when the caller's metadata doesn't already have them — surfaced back as `derivedMetadata` (see the `runner-config` table above). [src/dev/resolve-config.ts](src/dev/resolve-config.ts) is the dev-harness caller of this same function.
 
 Telemetry integrates the real Sunbird SDK
 (`@project-sunbird/telemetry-sdk` + `@project-sunbird/client-services`) via
