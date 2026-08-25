@@ -90,6 +90,13 @@ describe('computeTotalScore', () => {
     ]);
     expect(computeTotalScore(itemStates)).toBe(1);
   });
+
+  it('clamps a SCORE above its own MAXSCORE (unbounded mapResponse overscoring an item)', () => {
+    const itemStates = new Map<string, LegacyAttemptState>([
+      ['g1', state({ outcomeVariables: [{ identifier: 'SCORE', value: 10 }, { identifier: 'MAXSCORE', value: 5 }] })],
+    ]);
+    expect(computeTotalScore(itemStates)).toBe(5);
+  });
 });
 
 describe('computeTotalMaxScore', () => {

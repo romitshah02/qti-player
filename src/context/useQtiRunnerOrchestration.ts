@@ -54,6 +54,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   const testDurationMsRef = useRef<number | null>(null);
   const itemStartedAtRef = useRef<number | null>(null);
   const shownSectionIntrosRef = useRef<Set<string>>(new Set());
+  const assessLastScoreByGuidRef = useRef<Map<string, number>>(new Map());
   const showSectionIntroRef = useRef(true);
   const showAssessmentIntroRef = useRef(true);
   const testAttemptNumberRef = useRef(1);
@@ -351,9 +352,13 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
   }
 
   function raiseAssessAndResponse(itemState: LegacyAttemptState) {
-    const duration = itemStartedAtRef.current ? (Date.now() - itemStartedAtRef.current) / 1000 : 0;
-    const score = getOutcomeValue(itemState, 'SCORE', 0);
     const maxScore = getOutcomeValue(itemState, 'MAXSCORE', 1);
+    const score = Math.min(getOutcomeValue(itemState, 'SCORE', 0), maxScore);
+    const guid = itemState.guid!;
+    if (assessLastScoreByGuidRef.current.get(guid) === score) return;
+    assessLastScoreByGuidRef.current.set(guid, score);
+
+    const duration = itemStartedAtRef.current ? (Date.now() - itemStartedAtRef.current) / 1000 : 0;
     const resvalues = itemState.responseVariables
       .filter((v) => v.identifier !== 'duration' && v.identifier !== 'numAttempts')
       .map((v) => ({ value: v.value }));
@@ -437,7 +442,6 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
 
   return {
     itemPlayerRef,
-    summary: Selectors.getSummary(TC),
     breakdown: Selectors.getBreakdown(TC),
     timeTakenSeconds: testDurationMsRef.current !== null ? Math.round(testDurationMsRef.current / 1000) : null,
     sectionsWithCounts: Selectors.getSectionsWithCounts(TC, state),

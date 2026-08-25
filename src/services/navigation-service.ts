@@ -69,7 +69,9 @@ export function getOutcomeValue(state: LegacyAttemptState | undefined, identifie
 export function computeTotalScore(itemStates: Map<string, LegacyAttemptState>): number {
   let total = 0;
   itemStates.forEach((state) => {
-    total += getOutcomeValue(state, 'SCORE', 0);
+    const score = getOutcomeValue(state, 'SCORE', 0);
+    const maxScore = getOutcomeValue(state, 'MAXSCORE', 1);
+    total += Math.min(score, maxScore);
   });
   return total;
 }

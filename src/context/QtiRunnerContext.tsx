@@ -8,7 +8,7 @@
  * instead (putting a mutable class instance through a reducer buys nothing).
  */
 import { createContext, useCallback, useMemo, useReducer } from 'react';
-import type { Dispatch, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import type { ResolvedStimulus } from '@/services/content-loader';
 import type { FlattenedSection } from '@/utils/test-xml-parser';
 
@@ -160,7 +160,6 @@ export function runnerReducer(state: RunnerState, action: RunnerAction): RunnerS
 
 export interface QtiRunnerContextValue {
   state: RunnerState;
-  dispatch: Dispatch<RunnerAction>;
   initialize: (payload: { testTitle: string; maxItems: number; sections: FlattenedSection[] }) => void;
   setPanel: (panel: Panel) => void;
   setCurrentItem: (index: number) => void;
@@ -211,7 +210,6 @@ export function QtiRunnerProvider({ children }: QtiRunnerProviderProps) {
   const value = useMemo<QtiRunnerContextValue>(
     () => ({
       state,
-      dispatch,
       initialize,
       setPanel,
       setCurrentItem,

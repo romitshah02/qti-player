@@ -71,7 +71,6 @@ function TestRunnerInner({ config, onPlayerEvent, onNavEvent }: TestRunnerProps)
           currentItem={state.currentItem}
           maxItems={state.maxItems}
           reviewEnabled={runner.isLastItem && state.currentPanel === 'item'}
-          showMenuToggle
           testTimeRemaining={runner.testTimeRemaining}
           sectionTimeRemaining={runner.sectionTimeRemaining}
           sectionTimeOverrun={runner.sectionTimeOverrun}

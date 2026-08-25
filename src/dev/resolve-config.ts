@@ -1,26 +1,10 @@
 import sampleConfig from './sample-config';
-import { ContentLoader } from '@/services/content-loader';
-import { parseAssessmentTest, flattenSections, flattenItemRefs } from '@/utils/test-xml-parser';
+import { buildRunnerConfig } from '@/config/build-runner-config';
+import type { QtiContentMetadata } from '@/config/build-runner-config';
 import type { RunnerConfig } from '@/types';
 
-interface ContentReadItem {
-  identifier: string;
-  href?: string;
-  stimulusRefs?: string[];
-}
-
 interface ContentReadBody {
-  result: {
-    content: {
-      name?: string;
-      previewUrl?: string;
-      stimulusList?: { identifier: string; href: string }[];
-      itemList?: ContentReadItem[];
-      testList?: { href: string }[];
-      timeLimits?: { min?: number; max?: number };
-      maxAttempts?: number;
-    };
-  };
+  result: { content: QtiContentMetadata };
 }
 
 function writeBackDerivedMetadata(identifier: string, timeLimitSeconds: number | null | undefined, maxAttempts: number | null | undefined): void {
@@ -55,69 +39,14 @@ export async function resolveConfig(): Promise<RunnerConfig> {
     throw new Error(`[resolveConfig] content read failed for "${identifier}": ${response.status}`);
   }
   const body = (await response.json()) as ContentReadBody;
-  const content = body.result.content;
-  const stimulusList = content.stimulusList || [];
-  const itemMetaByIdentifier = new Map((content.itemList || []).map((item) => [item.identifier, item]));
+  const cfg = await buildRunnerConfig(identifier, body.result.content);
+  if (cfg.derivedMetadata) {
+    writeBackDerivedMetadata(identifier, cfg.derivedMetadata.timeLimitSeconds, cfg.derivedMetadata.maxAttempts);
+  }
 
   // content/v4/read never carries real part/section/item order (ingestion
-  // only reads imsmanifest.xml — see test-xml-parser.ts) — fetch+walk the
-  // test XML if a test package exists; else fall back to the flat itemList.
+  // only reads imsmanifest.xml — see test-xml-parser.ts), but buildRunnerConfig
+  // already fetches+walks the test XML when a test package exists.
   const context = { uid: 'dev-user', sid: 'dev-session', channel: 'dev', host: '', contentId: identifier };
-
-  const testEntry = (content.testList || [])[0];
-  if (!testEntry) {
-    return {
-      title: content.name || identifier,
-      submissionMode: 'simultaneous',
-      previewUrl: content.previewUrl,
-      stimulusList,
-      sessionControl: { show_feedback: true },
-      context,
-      items: (content.itemList || []).map((item) => ({
-        identifier: item.identifier,
-        guid: item.identifier,
-        href: item.href,
-        stimulusRefs: item.stimulusRefs || [],
-      })),
-    };
-  }
-
-  const contentLoader = new ContentLoader(content.previewUrl!);
-  const rawTestXml = await contentLoader.fetchText(testEntry.href);
-  const parsedTest = parseAssessmentTest(rawTestXml);
-  const itemRefs = flattenItemRefs(parsedTest);
-  const cachedTimeLimitSeconds = content.timeLimits?.max;
-  const cachedMaxAttempts = content.maxAttempts;
-  const timeLimitSeconds = cachedTimeLimitSeconds ?? parsedTest.timeLimits?.maxSeconds ?? undefined;
-  const maxAttempts = cachedMaxAttempts ?? parsedTest.parts[0]?.maxAttempts ?? undefined;
-  if (cachedTimeLimitSeconds == null && cachedMaxAttempts == null) {
-    writeBackDerivedMetadata(identifier, timeLimitSeconds, maxAttempts);
-  }
-
-  return {
-    title: parsedTest.title || content.name || identifier,
-    submissionMode: parsedTest.parts[0]?.submissionMode || 'simultaneous',
-    previewUrl: content.previewUrl,
-    stimulusList,
-    timeLimitSeconds,
-    sessionControl: { show_feedback: true, ...(maxAttempts != null && { max_attempts: maxAttempts }) },
-    context,
-    sections: flattenSections(parsedTest).map((s) => ({
-      identifier: s.identifier as string,
-      name: s.name as string,
-      blurb: s.blurb,
-      itemIdentifiers: s.itemIdentifiers as string[],
-      timeLimitSeconds: s.timeLimitSeconds ?? undefined,
-      allowLateSubmission: s.allowLateSubmission,
-    })),
-    items: itemRefs.map((ref) => {
-      const meta = itemMetaByIdentifier.get(ref.identifier as string);
-      return {
-        identifier: ref.identifier as string,
-        guid: ref.identifier as string,
-        href: ref.href || meta?.href,
-        stimulusRefs: meta?.stimulusRefs || [],
-      };
-    }),
-  };
+  return { ...cfg, context };
 }

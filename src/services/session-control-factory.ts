@@ -9,7 +9,6 @@ export class SessionControlFactory {
       max_time: null, // no limit
       allow_late_submission: false,
     },
-    ATTEMPTS_UNLIMITED: 0,
   };
 
   constructor() {

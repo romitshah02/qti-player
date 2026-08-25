@@ -10,7 +10,6 @@ export interface PlayerHeaderProps {
   currentItem: number;
   maxItems: number;
   reviewEnabled?: boolean;
-  showMenuToggle?: boolean;
   testTimeRemaining?: number | null;
   sectionTimeRemaining?: number | null;
   sectionTimeOverrun?: boolean;
@@ -46,7 +45,6 @@ export function PlayerHeader({
   currentItem,
   maxItems,
   reviewEnabled = false,
-  showMenuToggle = false,
   testTimeRemaining = null,
   sectionTimeRemaining = null,
   sectionTimeOverrun = false,
@@ -69,13 +67,11 @@ export function PlayerHeader({
   return (
     <header className={styles.header}>
       <div className={styles.left}>
-        {showMenuToggle && (
-          <button type="button" className={styles.menuBtn} aria-label="Open sections menu" onClick={onMenuToggle}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
-            </svg>
-          </button>
-        )}
+        <button type="button" className={styles.menuBtn} aria-label="Open sections menu" onClick={onMenuToggle}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+            <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
+          </svg>
+        </button>
 
         <button type="button" className={styles.brand} onClick={onBrandClick}>
           <span className={styles.brandBadge}>{brandInitial}</span>
