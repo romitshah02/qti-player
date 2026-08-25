@@ -11,14 +11,10 @@ import { useRef } from 'react';
 import type { RefObject } from 'react';
 import type { ContentLoader, ResolvedStimulus } from '@/services/content-loader';
 import type { Configuration } from '@/services/longsight-player-adapter';
+import type { StimulusPlayerInstance } from '@/services/stimulus-player-mount';
 import type { StimulusDescriptor, TestItem } from '@/types';
 import type { QtiAssessmentItemPlayerHandle } from '@longsightgroup/qti3-player-react';
 import { findDockingElement, hasDockingDiv } from '@/utils/stimulus-docking';
-
-interface StimulusPlayerInstance {
-  $destroy(): void;
-  $el: Element;
-}
 
 export interface UseStimulusDockingOptions {
   itemPlayerRef: RefObject<QtiAssessmentItemPlayerHandle | null>;

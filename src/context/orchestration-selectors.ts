@@ -6,7 +6,7 @@
  * zero/one-arg wrappers around these (same names, TC/state bound via
  * closure) so every existing call site there is untouched.
  */
-import { computeSummaryBreakdown, computeTotalScore } from '@/services/navigation-service';
+import { computeSummaryBreakdown, computeTotalMaxScore, computeTotalScore } from '@/services/navigation-service';
 import type { SummaryBreakdown } from '@/services/navigation-service';
 import type { TestControllerUtilities } from '@/services/test-controller';
 import type { RunnerState } from './QtiRunnerContext';
@@ -61,9 +61,11 @@ export function getSummary(TC: TestControllerUtilities): ItemSummaryEntry[] {
 
 export function getBreakdown(TC: TestControllerUtilities): SummaryBreakdown {
   const items = TC.getItems();
-  if (!items) return { correct: 0, wrong: 0, partial: 0, skipped: 0, score: 0 };
-  const totalScore = computeTotalScore(TC.getItemStates() ?? new Map());
-  return computeSummaryBreakdown(items, TC, totalScore);
+  if (!items) return { correct: 0, wrong: 0, partial: 0, skipped: 0, score: 0, maxScore: 0 };
+  const itemStates = TC.getItemStates() ?? new Map();
+  const totalScore = computeTotalScore(itemStates);
+  const totalMaxScore = computeTotalMaxScore(items, TC);
+  return computeSummaryBreakdown(items, TC, totalScore, totalMaxScore);
 }
 
 export function getSectionsWithCounts(TC: TestControllerUtilities, state: RunnerState) {

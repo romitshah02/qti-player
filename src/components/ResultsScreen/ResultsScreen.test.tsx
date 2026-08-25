@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { ResultsScreen } from './ResultsScreen';
 import type { SummaryBreakdown } from '@/services/navigation-service';
 
-const BREAKDOWN: SummaryBreakdown = { correct: 1, wrong: 2, partial: 0, skipped: 19, score: 1 };
+const BREAKDOWN: SummaryBreakdown = { correct: 1, wrong: 2, partial: 0, skipped: 19, score: 1, maxScore: 22 };
 
 describe('ResultsScreen', () => {
   it('renders the correct/incorrect/partial/skipped/score breakdown', () => {

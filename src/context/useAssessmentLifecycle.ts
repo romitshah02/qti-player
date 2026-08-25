@@ -6,10 +6,11 @@
  */
 import type { MutableRefObject, RefObject } from 'react';
 import type { Panel, RunnerState } from './QtiRunnerContext';
+import * as Selectors from './orchestration-selectors';
 import { ContentLoader } from '@/services/content-loader';
 import { SessionControlFactory } from '@/services/session-control-factory';
 import * as TelemetryService from '@/services/telemetry-service';
-import { computeSummaryBreakdown, computeTotalScore } from '@/services/navigation-service';
+import { computeSummaryBreakdown, computeTotalMaxScore, computeTotalScore, finalizeUnattemptedItemOutcomes } from '@/services/navigation-service';
 import type { TestControllerUtilities } from '@/services/test-controller';
 import type { FlattenedSection } from '@/utils/test-xml-parser';
 import type { NavEvent, RunnerConfig } from '@/types';
@@ -148,17 +149,32 @@ export function useAssessmentLifecycle(options: UseAssessmentLifecycleOptions) {
     return Math.max(0, max - testAttemptNumberRef.current);
   }
 
-  function navigateEnd() {
-    actions.setPanel('results');
+  async function navigateEnd() {
     itemPlayerRef.current?.reset();
     onNavEvent?.({ type: 'end', currentItem: state.currentItem, maxItems: state.maxItems });
 
+    const items = TC.getItems()!;
+    const resolved = await finalizeUnattemptedItemOutcomes(items, TC, contentLoaderRef.current!);
+    resolved.forEach(({ item, score, maxScore }) => {
+      const index = items.findIndex((i) => i.guid === item.guid);
+      TelemetryService.logAnswerSubmitted(
+        { identifier: item.identifier },
+        index,
+        [],
+        score,
+        maxScore,
+        { sectionId: Selectors.getSectionForIndex(TC, state, index)?.identifier ?? undefined },
+      );
+    });
+    actions.setPanel('results');
+
     const itemStates = TC.getItemStates()!;
     const totalScore = computeTotalScore(itemStates);
+    const totalMaxScore = computeTotalMaxScore(items, TC);
     testDurationMsRef.current = Date.now() - testStartedAtRef.current!;
-    TelemetryService.logAssessmentEnd(state.currentItem, state.maxItems, testDurationMsRef.current, totalScore);
+    TelemetryService.logAssessmentEnd(state.currentItem, state.maxItems, testDurationMsRef.current, totalScore, totalMaxScore);
     TelemetryService.logSummary(
-      computeSummaryBreakdown(TC.getItems()!, TC, totalScore),
+      computeSummaryBreakdown(items, TC, totalScore, totalMaxScore),
       { currentQuestionIndex: state.currentItem, totalQuestions: state.maxItems, starttime: testStartedAtRef.current! },
     );
   }

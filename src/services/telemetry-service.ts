@@ -307,9 +307,9 @@ interface AnswerSubmittedItem {
   qType?: string;
 }
 
-// ponytail: maxScore has no source in this app (no per-item max-score
-// convention), so it's always 1 and "pass" only means SCORE > 0, not true
-// criterion-referenced pass/fail. Revisit if a MAXSCORE outcome convention appears.
+// maxScore defaults to 1 when the item declares no MAXSCORE outcome (QTI 3
+// built-in, spec-defined alongside SCORE but not required) — see
+// computeTotalMaxScore in navigation-service.ts for the test-level aggregate.
 export function logAnswerSubmitted(
   item: AnswerSubmittedItem,
   index: number,
@@ -350,7 +350,7 @@ export function logResponse(questionId: string, qType: string | undefined, optio
   }
 }
 
-export function logAssessmentEnd(currentIndex: number, totalItems: number, durationMs: number, score: number): void {
+export function logAssessmentEnd(currentIndex: number, totalItems: number, durationMs: number, score: number, maxScore: number): void {
   const event = build('END', {
     type: 'content',
     mode: 'play',
@@ -361,6 +361,7 @@ export function logAssessmentEnd(currentIndex: number, totalItems: number, durat
       { visitedQuestions: currentIndex },
       { endpageseen: true },
       { score },
+      { maxScore },
     ],
     duration: Number((durationMs / 1e3).toFixed(2)),
   });
@@ -372,6 +373,7 @@ export function logAssessmentEnd(currentIndex: number, totalItems: number, durat
 
 interface SummaryStats {
   score: number;
+  maxScore: number;
   correct: number;
   wrong: number;
   partial: number;
@@ -398,6 +400,7 @@ export function logSummary(summary: SummaryStats, meta: SummaryMeta): void {
       { id: 'progress', value: meta.totalQuestions > 0 ? String(((meta.currentQuestionIndex / meta.totalQuestions) * 100).toFixed(0)) : '0' },
       { id: 'endpageseen', value: 'true' },
       { id: 'score', value: String(summary.score) },
+      { id: 'maxScore', value: String(summary.maxScore) },
       { id: 'correct', value: String(summary.correct) },
       { id: 'incorrect', value: String(summary.wrong) },
       { id: 'partial', value: String(summary.partial) },

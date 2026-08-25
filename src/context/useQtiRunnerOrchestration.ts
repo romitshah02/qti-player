@@ -27,7 +27,7 @@ import { SessionControlFactory } from '@/services/session-control-factory';
 import * as LongsightPlayerAdapter from '@/services/longsight-player-adapter';
 import type { Configuration } from '@/services/longsight-player-adapter';
 import * as TelemetryService from '@/services/telemetry-service';
-import { resolveNavigationOutcome } from '@/services/navigation-service';
+import { getOutcomeValue, resolveNavigationOutcome } from '@/services/navigation-service';
 import type { NavigationTarget } from '@/services/navigation-service';
 import type { FlattenedSection } from '@/utils/test-xml-parser';
 import type { LegacyAttemptState, NavEvent, PlayerEvent, RunnerConfig } from '@/types';
@@ -352,8 +352,8 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
 
   function raiseAssessAndResponse(itemState: LegacyAttemptState) {
     const duration = itemStartedAtRef.current ? (Date.now() - itemStartedAtRef.current) / 1000 : 0;
-    const scoreVar = itemState.outcomeVariables.find((v) => v.identifier === 'SCORE');
-    const score = scoreVar ? Number(scoreVar.value) || 0 : 0;
+    const score = getOutcomeValue(itemState, 'SCORE', 0);
+    const maxScore = getOutcomeValue(itemState, 'MAXSCORE', 1);
     const resvalues = itemState.responseVariables
       .filter((v) => v.identifier !== 'duration' && v.identifier !== 'numAttempts')
       .map((v) => ({ value: v.value }));
@@ -363,7 +363,7 @@ export function useQtiRunnerOrchestration(config: RunnerConfig, options: UseQtiR
       state.currentItem,
       resvalues,
       score,
-      1,
+      maxScore,
       { sectionId: getCurrentSectionId() ?? undefined, durationSec: duration },
     );
     TelemetryService.logResponse(itemState.identifier!, state.currentItemInteractionType ?? undefined, resvalues[0] ? resvalues[0].value : null);
