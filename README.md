@@ -90,7 +90,7 @@ The single prop the runner takes — see [`RunnerConfig`](src/types/index.ts) fo
 
 ## Config helpers (`dist-lib`)
 
-`npm run build:config` (via [vite.lib.config.ts](vite.lib.config.ts)) builds [src/config/index.ts](src/config/index.ts) as a plain-ESM bundle to `dist-lib/index.js` (+ `.d.ts`) — unlike `dist-wc`, no `package.json` is generated for it yet, so a consumer (e.g. a content-node backend) currently pulls in `dist-lib/index.js` directly rather than via a published subpath import:
+`npm run build:config` (via [vite.lib.config.ts](vite.lib.config.ts)) builds [src/config/index.ts](src/config/index.ts) as a plain-ESM bundle to `dist-lib/index.js` (+ `.d.ts`) — gitignored build output, not committed, so run this before a consumer imports from it. Unlike `dist-wc`, no `package.json` is generated for it yet, so a consumer (e.g. a content-node backend) currently pulls in `dist-lib/index.js` directly rather than via a published subpath import:
 
 ```ts
 import { buildRunnerConfig } from './dist-lib/index.js';
