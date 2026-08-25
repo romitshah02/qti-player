@@ -20,7 +20,7 @@ function writeBackDerivedMetadata(identifier: string, timeLimitSeconds: number |
         },
       },
     }),
-  }).catch((error) => console.warn(`[resolveConfig] metadata write-back failed for "${identifier}"`, error));
+  }).catch((error) => console.warn('[resolveConfig] metadata write-back failed for "%s"', identifier, error));
 }
 
 /**
