@@ -118,6 +118,7 @@ const build = async () => {
       license: 'MIT',
     };
     await writeFile(path.join(PKG_ROOT, 'package.json'), JSON.stringify(manifest, null, 2));
+    await cp('README.md', path.join(PKG_ROOT, 'README.md'));
 
     console.log('[Build] Web component built successfully!');
     console.log(`[Build] Output: ${DEST}/`);
