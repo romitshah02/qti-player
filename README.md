@@ -1,5 +1,5 @@
 # test-qti-player-web-component-react
-[![npm version](https://img.shields.io/npm/v/test-qti-player-web-component-react.svg)](https://www.npmjs.com/package/test-qti-player-web-component-react)
+[![npm version](https://img.shields.io/npm/v/test-qti-player-web-component-react?color=red)](https://www.npmjs.com/package/test-qti-player-web-component-react)
 
 QTI 3 assessment test runner: item navigation, review, section intros,
 submit/restart, shared-stimulus docking, Sunbird telemetry. Built as a React
